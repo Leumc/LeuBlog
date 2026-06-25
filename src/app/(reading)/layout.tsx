@@ -3,6 +3,8 @@ import MainNav from "@/components/reader/MainNav";
 import SiteFooter from "@/components/reader/SiteFooter";
 import ProgressBar from "@/components/reader/ProgressBar";
 
+export const dynamic = "force-dynamic";
+
 /** 文章阅读页外壳：紧凑品牌导航（无 masthead），含阅读进度条 */
 export default async function ReadingLayout({
   children,

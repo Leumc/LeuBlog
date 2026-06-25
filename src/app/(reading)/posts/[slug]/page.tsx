@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { renderMarkdown, extractToc } from "@/lib/markdown";
 import { formatDate, formatViews } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 import ArticleBody from "@/components/reader/ArticleBody";
 import Toc from "@/components/reader/Toc";
 import ViewTracker from "@/components/reader/ViewTracker";

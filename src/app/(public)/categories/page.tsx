@@ -5,6 +5,8 @@ import { formatDate, formatDateSlash } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "分组总览" };
 
+export const dynamic = "force-dynamic";
+
 export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({
     orderBy: { order: "asc" },

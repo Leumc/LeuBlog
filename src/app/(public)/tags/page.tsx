@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = { title: "标签总览" };
 
+export const dynamic = "force-dynamic";
+
 export default async function TagsPage() {
   const categories = await prisma.category.findMany({
     orderBy: { order: "asc" },

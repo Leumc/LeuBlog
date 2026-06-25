@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatViews } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 const PAGE_SIZE = 10;
 
 export async function generateMetadata({

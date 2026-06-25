@@ -7,6 +7,9 @@ import ArchiveView, {
 
 export const metadata: Metadata = { title: "归档" };
 
+// 实时查询：内容随发文变化，不做静态固化
+export const dynamic = "force-dynamic";
+
 export default async function ArchivePage() {
   const posts = await prisma.post.findMany({
     where: { status: "PUBLISHED", publishedAt: { not: null } },

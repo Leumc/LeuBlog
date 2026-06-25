@@ -6,6 +6,8 @@ import SidebarPortals from "@/components/reader/SidebarPortals";
 
 export const metadata: Metadata = { title: "关于" };
 
+export const dynamic = "force-dynamic";
+
 export default async function AboutPage() {
   const s = await getSettings();
   const html = await renderMarkdown(s["about.content"]);

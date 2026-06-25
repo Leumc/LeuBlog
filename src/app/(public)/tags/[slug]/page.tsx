@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatViews } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

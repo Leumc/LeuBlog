@@ -4,6 +4,9 @@ import { getSetting } from "@/lib/settings";
 import { formatDate, formatViews, formatCompact } from "@/lib/utils";
 import SidebarPortals from "@/components/reader/SidebarPortals";
 
+// 实时查询：首页文章列表随发文变化
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const count = parseInt((await getSetting("home.postCount")) || "8", 10);
   const [posts, categories, popular] = await Promise.all([
