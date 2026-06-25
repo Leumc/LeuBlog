@@ -25,3 +25,6 @@ prisma/dev.db
 Thumbs.db
 
 # 注意：design-previews/ 为设计存档，保留并提交，勿忽略
+
+certs/
+#证书
