@@ -26,7 +26,6 @@ RUN npm ci --omit=dev
 
 # 拷贝构建产物与运行所需文件
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY next.config.mjs ./
 
