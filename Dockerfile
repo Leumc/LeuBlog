@@ -9,6 +9,8 @@ RUN npm ci
 # 生成 Prisma Client 并构建
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# SQLite 文件在构建时不需真实数据，只需环境变量存在即可通过 Prisma client 初始化
+ENV DATABASE_URL="file:/tmp/build-placeholder.db"
 RUN npx prisma generate && npx next build
 
 # ---------- 运行阶段 ----------
