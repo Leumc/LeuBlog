@@ -51,7 +51,7 @@ vim .env
 ```
 将`AUTH_SECRET`修改为之前生成的base64串，随后根据文件内注释设置基本信息（管理员用户名、密码等等）
 
-随后前往[CloudFlare仪表盘](https://dash.cloudflare.com/)（请自备域名），点击侧边栏的`SSL/TSL->源服务器->创建证书`，确保主机名包含`*.yourdomain.com`和`yourdomain.com`，证书有效期选择15年，点击右下角创建，得到源证书和私钥。
+随后前往[CloudFlare仪表盘](https://dash.cloudflare.com/)（请自备域名），点击侧边栏的`域名->概览->yourdomain.com->侧边栏SSL/TSL->源服务器->创建证书`，确保主机名包含`*.yourdomain.com`和`yourdomain.com`，证书有效期选择15年，点击右下角创建，得到源证书和私钥。
 
 在项目目录下创建`certs`文件夹写入源证书和私钥：
 
@@ -67,7 +67,7 @@ vim certs/key,pem             #将私钥写入
 docker compose up -d --build
 ```
 
-回到[CloudFlare仪表盘](https://dash.cloudflare.com/)，点击`域名->概览->yourdomain.com->DNS记录（右上角）`，添加一条A记录，点击`添加记录`，类型为`A`，名称写`blog`（或者你喜欢的任意次级域名），IPV4地址为部署服务器的公网IPV4地址，点击保存。
+回到[CloudFlare仪表盘](https://dash.cloudflare.com/)，点击`侧边栏概述->DNS记录（右上角）`，添加一条A记录，点击`添加记录`，类型为`A`，名称写`blog`（或者你喜欢的任意次级域名），IPV4地址为部署服务器的公网IPV4地址，点击保存。
 
 随后浏览器打开`Https://blog.yourdomain.com`，应该可以访问到博客的首页，在网址后面添加`/admin`，即可使用先前设置的管理员用户名和密码登录后台。
 
