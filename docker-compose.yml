@@ -33,7 +33,6 @@ services:
       - "443:443"
     volumes:
       - ./certs:/etc/nginx/certs:ro
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       # 让 nginx 直出上传图片（与 app 共享同一卷）
       - ./uploads:/var/www/uploads:ro
