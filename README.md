@@ -30,20 +30,46 @@ npm run dev                 # http://localhost:3000
 
 后台入口 `http://localhost:3000/admin`，用 `.env` 中的 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登录。
 
-## 部署（Docker Compose）
+## 部署
+
+首先安装`docker`，可以使用官方安装脚本：
 
 ```bash
-cp .env.example .env        # 必填 AUTH_SECRET（openssl rand -base64 48），改默认管理员密码
+curl -fsSL https://get.docker.com | sh
+```
+然后设置初始信息：
+
+```bash
+cd LeuBlog
+cp .env.example .env           #应用模板
+openssl rand -base64 48        #生成随机的48位base64串作为AUTH_SECRET，复制下来
+```
+
+编辑`.env`文件：
+```bash
+vim .env
+```
+将`AUTH_SECRET`修改为之前生成的base64串，随后根据文件内注释设置基本信息（管理员用户名、密码等等）
+
+随后前往[CloudFlare仪表盘](https://dash.cloudflare.com/)（请自备域名），点击侧边栏的`SSL/TSL->源服务器->创建证书`，确保主机名包含`*.yourdomain.com`和`yourdomain.com`，证书有效期选择15年，点击右下角创建，得到源证书和私钥。
+
+在项目目录下创建`certs`文件夹写入源证书和私钥：
+
+```bash
+mkdir certs
+vim certs/cert.pem            #将源证书写入
+vim certs/key,pem             #将私钥写入
+```
+
+随后构建：
+
+```bash
 docker compose up -d --build
 ```
 
-- 站点：`http://<服务器IP>/`（Nginx 80 端口反代到应用）
-- 持久化卷：`./data`（SQLite 文件）、`./uploads`（图片）
-- 启动时自动执行 `prisma migrate deploy` 与幂等 seed（首次创建管理员）
-- HTTPS：在 `nginx/nginx.conf` 增加 443 + 证书，或在其前面再加一层（Caddy / Cloudflare）
+回到[CloudFlare仪表盘](https://dash.cloudflare.com/)，点击`域名->概览->yourdomain.com->DNS记录（右上角）`，添加一条A记录，点击`添加记录`，类型为`A`，名称写`blog`（或者你喜欢的任意次级域名），IPV4地址为部署服务器的公网IPV4地址，点击保存。
 
-> **2G 内存构建提示**：`next build` 峰值内存较高。若在 VPS 上直接 `--build` 出现 OOM，
-> 建议为系统添加 1–2G swap，或在本机构建镜像后推送到服务器。
+随后浏览器打开`Https://blog.yourdomain.com`，应该可以访问到博客的首页，在网址后面添加`/admin`，即可使用先前设置的管理员用户名和密码登录后台。
 
 ### 字体（可选自托管）
 
