@@ -15,20 +15,19 @@ export default async function PublicLayout({
   const accent = normalizeAccent(s["appearance.accent"]);
 
   return (
-    <div
-      className="dotgrid"
-      style={
-        {
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          "--accent": accent,
-        } as React.CSSProperties
-      }
-    >
-      <SiteHeader />
-      <main style={{ flex: 1 }}>{children}</main>
-      <SiteFooter />
-    </div>
+    <>
+      {/* 站点默认强调色写入 :root（低优先级）；读者切换器用 documentElement
+          内联样式覆盖，故能生效。不要把 --accent 写在本 div 的内联 style，
+          否则会遮蔽切换器设在 <html> 上的值。 */}
+      <style dangerouslySetInnerHTML={{ __html: `:root{--accent:${accent}}` }} />
+      <div
+        className="dotgrid"
+        style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+      >
+        <SiteHeader />
+        <main style={{ flex: 1 }}>{children}</main>
+        <SiteFooter />
+      </div>
+    </>
   );
 }

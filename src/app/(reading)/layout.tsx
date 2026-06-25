@@ -1,4 +1,5 @@
 import { getSettings } from "@/lib/settings";
+import { normalizeAccent } from "@/lib/appearance";
 import MainNav from "@/components/reader/MainNav";
 import SiteFooter from "@/components/reader/SiteFooter";
 import ProgressBar from "@/components/reader/ProgressBar";
@@ -12,13 +13,17 @@ export default async function ReadingLayout({
   children: React.ReactNode;
 }) {
   const s = await getSettings();
+  const accent = normalizeAccent(s["appearance.accent"]);
   return (
-    <div className="dotgrid" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <ProgressBar />
-      <div className="topbar" />
-      <MainNav variant="brand" brand={s["masthead.title"]} />
-      <main style={{ flex: 1 }}>{children}</main>
-      <SiteFooter />
-    </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `:root{--accent:${accent}}` }} />
+      <div className="dotgrid" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <ProgressBar />
+        <div className="topbar" />
+        <MainNav variant="brand" brand={s["masthead.title"]} />
+        <main style={{ flex: 1 }}>{children}</main>
+        <SiteFooter />
+      </div>
+    </>
   );
 }
