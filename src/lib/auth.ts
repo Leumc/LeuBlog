@@ -64,7 +64,10 @@ export async function createSession(user: SessionUser, remember: boolean): Promi
   const store = await cookies();
   store.set(COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // 仅当显式启用 HTTPS 时才加 Secure 标志。
+    // 默认 false：否则在 HTTP（无 TLS）部署下浏览器会拒绝存储 Secure cookie，
+    // 导致登录后 cookie 丢失、每次跳回登录页。配了 HTTPS 后设 COOKIE_SECURE=true。
+    secure: process.env.COOKIE_SECURE === "true",
     sameSite: "lax",
     path: "/",
     maxAge,
