@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog — 设计预览 · 首页 v3</title>
+<style>
+  :root{
+    --paper:#faf7f1; --paper-2:#f6efe2; --ink:#2c2620; --ink-soft:#5d564b;
+    --rule:#ddd5c5; --accent:#9c2b22; --accent-2:#c2592f; --gold:#b08328;
+    --muted:#9a9080;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);
+    line-height:1.7;-webkit-font-smoothing:antialiased;font-size:17px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
+  a{color:inherit;text-decoration:none}
+  a:hover{color:var(--accent)}
+
+  .topbar{height:5px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 70%,var(--gold) 100%)}
+
+  .announce{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  .announce .wrap{display:flex;align-items:center;gap:14px;padding:9px 32px;font-size:14px;color:var(--ink-soft)}
+  .announce .tag{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#fff;background:var(--accent);
+    padding:2px 8px;border-radius:2px;font-family:Georgia,serif}
+  .announce .txt{font-style:italic}
+  .announce .x{margin-left:auto;color:var(--muted);cursor:pointer;font-style:normal}
+
+  /* 报头 —— 标题回归墨色、收小，红色让位于点缀 */
+  header.masthead{text-align:center;padding:30px 0 16px;border-bottom:1px solid var(--rule)}
+  .masthead .kicker{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif}
+  .masthead h1{font-size:42px;margin:8px 0 5px;letter-spacing:.04em;font-weight:600;color:var(--ink)}
+  .masthead .sub{font-style:italic;color:var(--ink-soft);font-size:16px}
+
+  nav.main{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  nav.main .wrap{display:flex;justify-content:center;gap:38px;padding:12px 32px}
+  nav.main a{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);font-family:Georgia,serif}
+  nav.main a:hover{color:var(--accent)}
+  nav.main a.active{color:var(--accent);font-weight:700}
+
+  .layout{display:grid;grid-template-columns:1fr 280px;gap:48px;padding:34px 0 60px}
+
+  .section-label{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);
+    font-family:Georgia,serif;border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:6px;
+    display:flex;align-items:center;gap:8px}
+  .section-label::before{content:"";width:9px;height:9px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+
+  article.entry{padding:26px 0;border-bottom:1px solid var(--rule)}
+  article.entry:first-of-type{padding-top:18px}
+  .entry .cat{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;background:var(--accent);
+    font-family:Georgia,serif;padding:2px 9px;border-radius:2px}
+  .entry h2{font-size:28px;margin:10px 0 8px;font-weight:600;line-height:1.35}
+  .entry h2 a:hover{color:var(--accent)}
+  .entry .meta{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:10px}
+  .entry .meta b{font-style:normal;font-weight:600;color:var(--ink-soft)}
+  .entry .meta .views{color:var(--accent-2);font-style:normal;font-weight:600}
+  .entry p.dek{margin:0;color:var(--ink-soft);font-size:16.5px}
+  article.entry:first-of-type p.dek::first-letter{
+    font-size:52px;float:left;line-height:.8;padding:6px 10px 0 0;color:var(--accent);font-weight:700}
+  .entry .tags{margin-top:12px;font-size:12px;color:var(--muted)}
+  .entry .tags span{border:1px solid var(--rule);padding:2px 9px;margin-right:7px;border-radius:2px;color:var(--ink-soft)}
+
+  .more{display:inline-block;margin-top:24px;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+    font-family:Georgia,serif;background:var(--accent);color:#fff;padding:8px 16px;border-radius:2px}
+  .more:hover{background:var(--accent-2);color:#fff}
+
+  aside .block{margin-bottom:34px}
+  aside .item{display:flex;justify-content:space-between;align-items:baseline;
+    padding:9px 0;border-bottom:1px solid var(--rule);font-size:15px}
+  aside .item .n{font-size:12px;color:#fff;background:var(--accent-2);font-family:Georgia,serif;padding:1px 8px;border-radius:10px}
+  aside .portal{padding:9px 0;border-bottom:1px solid var(--rule)}
+  aside .portal a{font-size:15px;color:var(--accent)}
+  aside .portal a:hover{color:var(--accent-2)}
+  aside .portal .d{font-size:12px;color:var(--muted);font-style:italic}
+  aside .grp{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-2);
+    font-family:Georgia,serif;margin:14px 0 2px;font-weight:700}
+
+  footer{border-top:3px double var(--accent);padding:24px 0 40px;text-align:center;color:var(--muted);font-size:13px;font-style:italic}
+  body{background-color:var(--paper);background-image:radial-gradient(rgba(44,38,32,.13) 1.5px,transparent 1.7px);background-size:24px 24px;background-attachment:scroll}
+</style>
+</head>
+<body>
+  <div class="topbar"></div>
+
+  <div class="announce"><div class="wrap">
+    <span class="tag">公告</span>
+    <span class="txt">站点已迁移至新服务器，如遇访问异常请稍后重试。— 2026/06/24</span>
+    <span class="x">×</span>
+  </div></div>
+
+  <header class="masthead"><div class="wrap">
+    <div class="kicker">Algorithms · Computer Science · Notes</div>
+    <h1>LeuBlog</h1>
+    <div class="sub">算法学习记录 与 计算机技术教程</div>
+  </div></header>
+
+  <nav class="main"><div class="wrap">
+    <a class="active" href="#">首页</a><a href="#">分组</a><a href="#">标签</a><a href="#">归档</a><a href="#">关于</a>
+  </div></nav>
+
+  <div class="wrap layout">
+    <main>
+      <div class="section-label">最近发布</div>
+
+      <article class="entry">
+        <span class="cat">算法 · 动态规划</span>
+        <h2><a href="#">从背包问题理解状态压缩 DP 的本质</a></h2>
+        <div class="meta">2026 年 6 月 22 日 · <b>Leu</b> · <span class="views">阅读 1,284</span></div>
+        <p class="dek">当物品数量进入指数级，朴素 DP 不再可行。本文用三道经典题，逐步推导出位运算状态压缩的通用范式，并给出可复用的代码模板。</p>
+        <div class="tags"><span>DP</span><span>位运算</span><span>C++</span></div>
+      </article>
+
+      <article class="entry">
+        <span class="cat">教程 · 工具链</span>
+        <h2><a href="#">在 2 核 2G 小服务器上优雅地部署一个全栈应用</a></h2>
+        <div class="meta">2026 年 6 月 18 日 · <b>Leu</b> · <span class="views">阅读 932</span></div>
+        <p class="dek">资源有限不等于将就。从 Docker 镜像瘦身、Nginx 反代到 SQLite 备份，记录一套在轻量 VPS 上稳定运行的实践方案。</p>
+        <div class="tags"><span>部署</span><span>Docker</span><span>Nginx</span></div>
+      </article>
+
+      <article class="entry">
+        <span class="cat">算法 · 图论</span>
+        <h2><a href="#">最短路三连：Dijkstra、Bellman-Ford 与 SPFA 的取舍</a></h2>
+        <div class="meta">2026 年 6 月 14 日 · <b>Leu</b> · <span class="views">阅读 1,507</span></div>
+        <p class="dek">同样是最短路，为什么竞赛里有人偏爱 SPFA、有人坚持堆优化 Dijkstra？从复杂度与数据特征出发，给出一份选择清单。</p>
+        <div class="tags"><span>图论</span><span>最短路</span></div>
+      </article>
+
+      <a class="more" href="#">浏览全部分组 →</a>
+    </main>
+
+    <aside>
+      <div class="block">
+        <div class="section-label">传送门</div>
+        <div class="grp">我的站点</div>
+        <div class="portal"><a href="#">Leu 的实验室 ↗</a><div class="d">代码与小工具合集</div></div>
+        <div class="grp">友情链接</div>
+        <div class="portal"><a href="#">某同学的博客 ↗</a><div class="d">系统与编译方向</div></div>
+        <div class="portal"><a href="#">算法竞赛笔记 ↗</a><div class="d">题解与模板</div></div>
+      </div>
+
+      <div class="block">
+        <div class="section-label">分组</div>
+        <div class="item"><a href="#">算法</a><span class="n">18</span></div>
+        <div class="item"><a href="#">数据结构</a><span class="n">11</span></div>
+        <div class="item"><a href="#">系统与工具</a><span class="n">7</span></div>
+        <div class="item"><a href="#">读书与杂谈</a><span class="n">4</span></div>
+      </div>
+
+      <div class="block">
+        <div class="section-label">热门</div>
+        <div class="item"><a href="#">最短路三连…</a><span class="n">1.5k</span></div>
+        <div class="item"><a href="#">状态压缩 DP…</a><span class="n">1.3k</span></div>
+        <div class="item"><a href="#">小服务器部署…</a><span class="n">932</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer><div class="wrap">LeuBlog · 由 Next.js 与衬线字体驱动 · © 2026</div></footer>
+</body>
+</html>

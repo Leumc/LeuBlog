@@ -1,0 +1,275 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { markdown } from "@codemirror/lang-markdown";
+import { languages } from "@codemirror/language-data";
+import type { EditorView } from "@codemirror/view";
+import { savePost } from "@/app/admin/posts/post-actions";
+
+const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), { ssr: false });
+
+export type EditorPost = {
+  id?: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  status: "DRAFT" | "PUBLISHED";
+  categoryId: string | null;
+  tagIds: string[];
+};
+
+export type Taxonomy = {
+  id: string;
+  name: string;
+  tagGroups: { id: string; name: string; tags: { id: string; name: string }[] }[];
+}[];
+
+export default function PostEditor({
+  post,
+  categories,
+  taxonomy,
+}: {
+  post: EditorPost;
+  categories: { id: string; name: string }[];
+  taxonomy: Taxonomy;
+}) {
+  const [title, setTitle] = useState(post.title);
+  const [slug, setSlug] = useState(post.slug);
+  const [excerpt, setExcerpt] = useState(post.excerpt);
+  const [content, setContent] = useState(post.content);
+  const [categoryId, setCategoryId] = useState(post.categoryId ?? "");
+  const [tagIds, setTagIds] = useState<string[]>(post.tagIds);
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const viewRef = useRef<EditorView | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/preview", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ markdown: content }),
+        });
+        const data = await res.json();
+        if (data.ok) setPreviewHtml(data.html);
+      } catch {
+        /* ignore */
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [content]);
+
+  const insert = useCallback((text: string, wrap?: string) => {
+    const view = viewRef.current;
+    if (!view) {
+      setContent((c) => c + text);
+      return;
+    }
+    const { from, to } = view.state.selection.main;
+    const selected = view.state.sliceDoc(from, to);
+    const out = wrap ? `${wrap}${selected || text}${wrap}` : text;
+    view.dispatch({
+      changes: { from, to, insert: out },
+      selection: { anchor: from + out.length },
+    });
+    view.focus();
+  }, []);
+
+  const onUpload = useCallback(
+    async (file: File) => {
+      setUploading(true);
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if (data.ok) insert(`\n![${file.name}](${data.url})\n`);
+        else alert(data.error || "上传失败");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [insert],
+  );
+
+  const toggleTag = (id: string) =>
+    setTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+
+  return (
+    <form action={savePost}>
+      {post.id && <input type="hidden" name="id" value={post.id} />}
+      <input type="hidden" name="content" value={content} />
+      <input type="hidden" name="tagIds" value={JSON.stringify(tagIds)} />
+      <input type="hidden" name="categoryId" value={categoryId} />
+      <input type="hidden" name="slug" value={slug} />
+      <input type="hidden" name="excerpt" value={excerpt} />
+
+      <div className="panel">
+        <div className="ed-titlerow">
+          <input
+            className="title"
+            value={title}
+            name="title"
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="文章标题"
+          />
+          <span className={`status ${post.status === "PUBLISHED" ? "pub" : "draft"}`}>
+            {post.status === "PUBLISHED" ? "已发布" : "草稿"}
+          </span>
+        </div>
+
+        <div className="ed-meta">
+          <div className="m">
+            链接{" "}
+            <input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="自动生成"
+              style={{ width: 170 }}
+            />
+          </div>
+          <div className="m">
+            分组{" "}
+            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <option value="">（未分组）</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <span className="sp" style={{ marginLeft: "auto" }} />
+          <button type="submit" name="status" value="DRAFT" className="btn sm">
+            保存草稿
+          </button>
+          <button type="submit" name="status" value="PUBLISHED" className="btn primary sm">
+            {post.status === "PUBLISHED" ? "更新发布" : "发布"}
+          </button>
+        </div>
+
+        <div className="ed-tools">
+          <button type="button" title="加粗" onClick={() => insert("粗体", "**")}>
+            <b>B</b>
+          </button>
+          <button type="button" title="斜体" onClick={() => insert("斜体", "*")}>
+            <i>I</i>
+          </button>
+          <button type="button" title="标题" onClick={() => insert("\n## 标题\n")}>
+            H
+          </button>
+          <span className="gap" />
+          <button type="button" title="链接" onClick={() => insert("[文字](https://)")}>
+            🔗
+          </button>
+          <button type="button" title="行内代码" onClick={() => insert("代码", "`")}>
+            {"<>"}
+          </button>
+          <button type="button" title="代码块" onClick={() => insert("\n```python\n\n```\n")}>
+            ▦
+          </button>
+          <button type="button" title="公式" onClick={() => insert("\n$$\n\n$$\n")}>
+            ∑
+          </button>
+          <button type="button" title="引用" onClick={() => insert("\n> 引用\n")}>
+            ❝
+          </button>
+          <button type="button" title="列表" onClick={() => insert("\n- 项目\n")}>
+            ≔
+          </button>
+          <span className="gap" />
+          <label
+            title="上传图片"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 32,
+              height: 30,
+              border: "1px solid var(--aline)",
+              borderRadius: 5,
+              cursor: "pointer",
+              color: uploading ? "var(--aaccent)" : "var(--soft)",
+            }}
+          >
+            {uploading ? "…" : "⬆"}
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onUpload(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
+
+        <div className="ed-paneh">
+          <div>Markdown 源</div>
+          <div>实时预览</div>
+        </div>
+        <div className="editor">
+          <CodeMirror
+            value={content}
+            height="520px"
+            extensions={[markdown({ codeLanguages: languages })]}
+            onChange={(v) => setContent(v)}
+            onCreateEditor={(view) => {
+              viewRef.current = view;
+            }}
+            basicSetup={{ lineNumbers: true, foldGutter: false }}
+          />
+          <div className="ed-pv">
+            <div className="body" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          </div>
+        </div>
+      </div>
+
+      {/* 标签选择 */}
+      <div className="panel">
+        <div className="h">
+          <h2>标签</h2>
+        </div>
+        <div className="b">
+          {taxonomy.length === 0 && (
+            <p style={{ color: "var(--amuted)", fontSize: 13 }}>
+              暂无标签，请先在「分类法」中创建。
+            </p>
+          )}
+          {taxonomy.map((cat) => (
+            <div key={cat.id} style={{ marginBottom: 12 }}>
+              <div style={{ fontWeight: 700, fontSize: 12.5, color: "var(--soft)", marginBottom: 6 }}>
+                {cat.name}
+              </div>
+              {cat.tagGroups.map((g) => (
+                <div key={g.id} style={{ marginLeft: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: "var(--amuted)" }}>{g.name}：</span>
+                  {g.tags.map((t) => (
+                    <label key={t.id} style={{ marginRight: 12, fontSize: 13, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={tagIds.includes(t.id)}
+                        onChange={() => toggleTag(t.id)}
+                        style={{ marginRight: 4 }}
+                      />
+                      {t.name}
+                    </label>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+          <div className="fld" style={{ marginTop: 8, maxWidth: 420 }}>
+            <label>摘要（可空，自动截取正文）</label>
+            <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} />
+          </div>
+        </div>
+      </div>
+    </form>
+  );
+}

@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    container_name: leublog-app
+    restart: unless-stopped
+    environment:
+      # SQLite 文件落在挂载卷 ./data 中
+      DATABASE_URL: "file:/app/data/prod.db"
+      AUTH_SECRET: "${AUTH_SECRET:?请在 .env 中设置 AUTH_SECRET}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@leublog.local}"
+      ADMIN_USERNAME: "${ADMIN_USERNAME:-admin}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-changeme123}"
+      ADMIN_DISPLAY_NAME: "${ADMIN_DISPLAY_NAME:-站长}"
+      SITE_NAME: "${SITE_NAME:-LeuBlog}"
+      NODE_ENV: "production"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    expose:
+      - "3000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: leublog-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # 让 nginx 直出上传图片（与 app 共享同一卷）
+      - ./uploads:/var/www/uploads:ro

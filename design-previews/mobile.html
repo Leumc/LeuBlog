@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog · 移动端适配预览</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" id="katex"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --paper:#faf7f1; --paper-2:#f6efe2; --ink:#2c2620; --ink-soft:#544e44; --rule:#ddd5c5;
+    --accent:#9c2b22; --accent-2:#c2592f; --gold:#b08328; --muted:#9a9080; --line:#e3e6ea;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+    --sans:-apple-system,"Segoe UI",Roboto,"Microsoft YaHei","PingFang SC",sans-serif;
+    --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
+  }
+  body{background:#e9eaee;font-family:var(--sans);color:var(--ink);padding:26px}
+  .pagehead{max-width:1200px;margin:0 auto 18px}
+  .pagehead h1{font-family:var(--serif);font-size:26px;font-weight:700}
+  .pagehead p{color:#555c66;font-size:14px;margin-top:6px;max-width:780px;line-height:1.7}
+  .pagehead .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .pagehead .tags span{font-size:12px;background:#fff;border:1px solid #d7dae0;border-radius:20px;padding:3px 11px;color:#444}
+
+  .phones{display:flex;gap:34px;overflow-x:auto;padding:14px 4px 24px}
+  .phone{flex:none;width:380px}
+  .phone .cap{text-align:center;font-size:13px;font-weight:600;color:#3a3f47;margin-bottom:10px}
+  .phone .cap span{color:var(--muted);font-weight:400}
+  .screen{width:380px;height:760px;border:11px solid #1d2128;border-radius:40px;overflow:hidden;position:relative;background:var(--paper);box-shadow:0 16px 40px rgba(20,24,32,.22)}
+  .screen .bar{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130px;height:24px;background:#1d2128;border-radius:0 0 14px 14px;z-index:9}
+  .scroll{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .scroll::-webkit-scrollbar{width:0}
+
+  /* ---- 通用移动组件 ---- */
+  .accent5{height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-2) 70%,var(--gold))}
+  .mhdr{position:sticky;top:0;z-index:6}
+  .mtop{display:flex;align-items:center;gap:12px;padding:13px 16px 11px;background:var(--paper-2);border-bottom:1px solid var(--rule)}
+  .mtop .burger{font-size:20px;cursor:pointer;line-height:1}
+  .mtop .brand{font-family:var(--serif);font-weight:700;font-size:19px}
+  .mtop .r{margin-left:auto;color:var(--muted);font-size:18px}
+  .mmenu{display:none;flex-direction:column;background:#fff;border-bottom:1px solid var(--rule)}
+  .mmenu.open{display:flex}
+  .mmenu a{padding:13px 18px;border-bottom:1px solid var(--line2,#eef0f3);font-size:15px;color:var(--ink);font-family:var(--serif)}
+  .mmenu a:last-child{border-bottom:none}
+  .announce{display:flex;align-items:center;gap:9px;padding:8px 16px;background:#f1e7d6;border-bottom:1px solid var(--rule);font-size:12.5px;color:var(--ink-soft)}
+  .announce .tg{font-size:10px;letter-spacing:.1em;color:#fff;background:var(--accent);padding:1px 7px;border-radius:3px;font-family:Georgia,serif}
+  .announce .txt{font-style:italic;font-family:var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .mhead{text-align:center;padding:20px 16px 14px;border-bottom:1px solid var(--rule);font-family:var(--serif)}
+  .mhead .k{font-family:Georgia,serif;font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent-2)}
+  .mhead h2{font-size:30px;font-weight:700;margin:6px 0 3px}
+  .mhead .s{font-style:italic;color:var(--ink-soft);font-size:13px}
+
+  .pad{padding:14px 16px}
+  .seclabel{font-family:Georgia,serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);
+    border-bottom:2px solid var(--accent);padding-bottom:6px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+  .seclabel::before{content:"";width:7px;height:7px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+
+  .entry{padding:16px 0;border-bottom:1px solid var(--rule);font-family:var(--serif)}
+  .entry .cat{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--accent);padding:2px 8px;border-radius:2px;font-family:Georgia,serif}
+  .entry h3{font-size:21px;font-weight:600;line-height:1.35;margin:9px 0 7px}
+  .entry .meta{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:8px}
+  .entry .meta .v{color:var(--accent-2);font-style:normal;font-weight:600}
+  .entry p{font-size:14.5px;color:var(--ink-soft);line-height:1.7;margin:0}
+
+  .portal{padding:10px 0;border-bottom:1px solid var(--rule);font-family:var(--serif)}
+  .portal a{color:var(--accent);font-size:15px}.portal .d{font-size:12px;color:var(--muted);font-style:italic}
+  .grp{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif;font-weight:700;margin:10px 0 2px}
+  .litem{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:15px}
+  .litem .n{font-size:11px;color:#fff;background:var(--accent-2);padding:1px 8px;border-radius:9px;font-family:Georgia,serif}
+
+  .mfoot{border-top:3px double var(--accent);padding:18px 16px 26px;text-align:center;color:var(--muted);font-size:12px;font-style:italic;font-family:var(--serif)}
+
+  /* ---- 文章页 ---- */
+  .art{font-family:var(--serif);padding:14px 16px}
+  .crumb{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:Georgia,serif;margin-bottom:8px}
+  .art h1{font-size:27px;line-height:1.3;font-weight:700;margin:8px 0 10px}
+  .art .meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted);font-style:italic;border-bottom:3px double var(--accent);padding-bottom:12px}
+  .toc{margin:14px 0;border:1px solid var(--rule);border-radius:7px;overflow:hidden;font-family:var(--sans)}
+  .toc .th{display:flex;align-items:center;padding:10px 13px;background:var(--paper-2);font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer}
+  .toc .th .ar{margin-left:auto;transition:.15s}
+  .toc.open .th .ar{transform:rotate(180deg)}
+  .toc .tb{display:none;flex-direction:column}
+  .toc.open .tb{display:flex}
+  .toc .tb a{padding:9px 13px 9px 18px;font-size:13.5px;color:var(--ink-soft);border-top:1px solid var(--line);font-family:var(--serif)}
+  .art p{font-size:16px;line-height:1.85;margin:12px 0}
+  .art h2{font-size:21px;font-weight:700;border-bottom:1px solid var(--rule);padding-bottom:6px;margin:22px 0 10px}
+  .art strong{color:var(--accent)}
+  .cb{margin:14px 0;border-radius:6px;overflow:hidden;background:#272320}
+  .cb .cbbar{display:flex;justify-content:space-between;padding:7px 12px;background:#1f1b18;color:#a59a86;font-family:var(--mono);font-size:10px;text-transform:uppercase}
+  .cb .cbbar button{background:transparent;border:1px solid #4a4239;color:#e0d6c5;border-radius:3px;font-size:10px;padding:2px 8px}
+  .cb pre{margin:0;padding:13px 14px;overflow-x:auto}
+  .cb code{font-family:var(--mono);font-size:12.5px;color:#e9e2d4;line-height:1.7;white-space:pre}
+  .kw{color:#ec8c7c;font-weight:600}.ty{color:#6fd0c4}.str{color:#b6d77a}.com{color:#8f8674;font-style:italic}
+  .katex-display{margin:14px 0;overflow-x:auto}
+  .arttags{margin-top:16px;border-top:1px solid var(--rule);padding-top:12px;font-size:12px;color:var(--muted)}
+  .arttags a{border:1px solid var(--rule);padding:2px 9px;margin:0 6px 6px 0;border-radius:2px;display:inline-block;color:var(--ink-soft)}
+
+  /* ---- 归档 ---- */
+  .arcbar{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--paper-2);border-bottom:1px solid var(--rule);font-family:Georgia,serif;font-size:14px}
+  .arcbar .cur{font-weight:700;color:var(--accent)}
+  .arcbar .pick{margin-left:auto;border:1px solid var(--rule);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--soft,#5b6471);background:#fff}
+  .yhline{font-family:Georgia,serif;font-size:30px;font-weight:700;border-bottom:2px solid var(--accent);padding:14px 0 6px;margin-bottom:6px}
+  .yhline span{font-size:13px;color:var(--accent-2);font-family:var(--serif);font-weight:400;margin-left:8px}
+  .heatscroll{overflow-x:auto;padding:8px 0 12px;border-bottom:1px solid var(--rule);margin-bottom:6px}
+  .heatscroll .hint{font-size:10px;color:var(--muted);font-family:Georgia,serif;margin-bottom:6px}
+  .cells{display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;grid-auto-columns:11px;gap:3px;width:max-content}
+  .cells i{width:11px;height:11px;border-radius:2px;background:#ece5d7;display:block}
+  .cells i.l1{background:#e7b9a8}.cells i.l2{background:#d3795b}.cells i.l3{background:#a83026}
+  .marc .month{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif;font-weight:700;margin:14px 0 2px}
+  .marc .r{display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px dotted var(--rule);font-family:var(--serif)}
+  .marc .r .dt{font-size:12px;color:var(--muted);font-family:Georgia,serif;white-space:nowrap}
+  .marc .r a{font-size:15px}
+
+  /* ---- 后台 ---- */
+  .adm{font-family:var(--sans);background:#f4f5f7;min-height:100%}
+  .admtop{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:12px;padding:12px 15px;background:#fff;border-bottom:1px solid var(--line)}
+  .admtop .burger{font-size:19px;cursor:pointer}
+  .admtop h3{font-size:16px;font-weight:700}
+  .admtop .av{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+  .admpad{padding:14px}
+  .stat2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
+  .stat2 .c{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 13px}
+  .stat2 .k{font-size:12px;color:#5b6471}.stat2 .v{font-size:22px;font-weight:700;margin-top:4px}
+  .stat2 .s{font-size:11px;color:#8b94a1;margin-top:2px}.stat2 .s .up{color:#1f8a4c}
+  .apanel{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:14px}
+  .apanel .ah{padding:11px 14px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700}
+  .apanel .ab{padding:13px 14px}
+  .mchart{display:flex;align-items:flex-end;gap:5px;height:90px}
+  .mchart i{flex:1;background:var(--accent);opacity:.85;border-radius:2px 2px 0 0}
+  .mchart i.t{background:#e0792f}
+  .scrollx{overflow-x:auto}
+  table.m{border-collapse:collapse;font-size:12.5px;width:520px}
+  table.m th{font-size:10.5px;text-transform:uppercase;color:#8b94a1;text-align:left;padding:7px 12px;border-bottom:1px solid var(--line)}
+  table.m td{padding:8px 12px;border-bottom:1px solid #eef0f3;white-space:nowrap}
+  .st{font-size:11px;font-weight:600;padding:2px 8px;border-radius:9px}.st.pub{background:#e8f5ee;color:#1f8a4c}.st.dr{background:#eef0f3;color:#5b6471}
+  .scrollnote{font-size:11px;color:#8b94a1;padding:8px 14px 0}
+  /* 抽屉 */
+  .drawer{position:absolute;inset:0;z-index:20;display:none}
+  .drawer.open{display:block}
+  .drawer .mask{position:absolute;inset:0;background:rgba(20,24,32,.45)}
+  .drawer .panel{position:absolute;top:0;left:0;bottom:0;width:230px;background:#1d2128;color:#c7cdd6;padding:14px 0;overflow:auto}
+  .drawer .panel .lg{padding:6px 18px 14px;font-weight:700;color:#fff;border-bottom:1px solid #2c3139;font-size:15px}
+  .drawer .panel .g{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#6c7480;padding:13px 18px 5px}
+  .drawer .panel a{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13.5px;color:#c7cdd6}
+  .drawer .panel a.on{background:#262b33;color:#fff;border-left:3px solid var(--accent)}
+</style>
+</head>
+<body>
+  <div class="pagehead">
+    <h1>移动端适配预览</h1>
+    <p>窄屏下的核心改动：顶部导航收为<strong>汉堡菜单</strong>；桌面的「主栏 + 侧栏」双栏<strong>堆叠为单栏</strong>（侧栏内容下移）；文章<strong>目录变可折叠下拉</strong>；代码块、表格、热力图<strong>横向滚动</strong>不挤压版面；后台导航变为<strong>左侧抽屉</strong>。点手机里的汉堡 / 目录 / 抽屉可交互。</p>
+    <div class="tags"><span>首页</span><span>文章页</span><span>归档</span><span>后台</span></div>
+  </div>
+
+  <div class="phones">
+
+    <!-- ===== 首页 ===== -->
+    <div class="phone">
+      <div class="cap">首页 <span>· 双栏堆叠 + 汉堡导航</span></div>
+      <div class="screen"><div class="bar"></div><div class="scroll">
+        <div class="accent5"></div>
+        <div class="mhdr"><div class="mtop"><span class="burger" onclick="this.closest('.scroll').querySelector('.mmenu').classList.toggle('open')">☰</span><span class="brand">LeuBlog</span><span class="r">⌕</span></div>
+        <div class="mmenu"><a>首页</a><a>分组</a><a>标签</a><a>归档</a><a>关于</a></div></div>
+        <div class="announce"><span class="tg">公告</span><span class="txt">站点已迁移至新服务器，遇异常请稍后重试。</span></div>
+        <div class="mhead"><div class="k">Algorithms · CS · Notes</div><h2>LeuBlog</h2><div class="s">算法学习记录 与 计算机技术教程</div></div>
+        <div class="pad">
+          <div class="seclabel">最近发布</div>
+          <div class="entry"><span class="cat">算法 · 动态规划</span><h3>从背包问题理解状态压缩 DP 的本质</h3><div class="meta">06/22 · Leu · <span class="v">阅读 1,284</span></div><p>当物品数量进入指数级，朴素 DP 不再可行。本文用三道经典题推导位运算状态压缩范式。</p></div>
+          <div class="entry"><span class="cat">教程 · 工具链</span><h3>在 2 核 2G 小服务器上优雅地部署全栈应用</h3><div class="meta">06/18 · Leu · <span class="v">阅读 932</span></div><p>从镜像瘦身到 Nginx 反代，记录一套轻量 VPS 上稳定运行的实践方案。</p></div>
+          <!-- 侧栏内容下移到正文之后 -->
+          <div class="seclabel" style="margin-top:22px">传送门</div>
+          <div class="grp">我的站点</div>
+          <div class="portal"><a>Leu 的实验室 ↗</a><div class="d">代码与小工具合集</div></div>
+          <div class="grp">友情链接</div>
+          <div class="portal"><a>某同学的博客 ↗</a><div class="d">系统与编译方向</div></div>
+          <div class="seclabel" style="margin-top:22px">分组</div>
+          <div class="litem"><span>算法</span><span class="n">18</span></div>
+          <div class="litem"><span>数据结构</span><span class="n">11</span></div>
+          <div class="litem"><span>系统与工具</span><span class="n">7</span></div>
+        </div>
+        <div class="mfoot">LeuBlog · © 2026</div>
+      </div></div>
+    </div>
+
+    <!-- ===== 文章页 ===== -->
+    <div class="phone">
+      <div class="cap">文章页 <span>· 目录折叠 + 代码横滚</span></div>
+      <div class="screen"><div class="bar"></div><div class="scroll">
+        <div class="accent5"></div>
+        <div class="mhdr"><div class="mtop"><span class="burger" onclick="this.closest('.scroll').querySelector('.mmenu').classList.toggle('open')">☰</span><span class="brand">LeuBlog</span><span class="r">⌕</span></div>
+        <div class="mmenu"><a>首页</a><a>分组</a><a>标签</a><a>归档</a><a>关于</a></div></div>
+        <div class="art">
+          <div class="crumb">首页 / 算法 / 数据结构</div>
+          <span class="cat" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--accent);padding:2px 8px;border-radius:2px;font-family:Georgia,serif">算法 · 数据结构</span>
+          <h1>二叉树入门：从定义到遍历</h1>
+          <div class="meta"><span>06/24</span><span>Leu</span><span>8 分钟</span><span style="color:var(--accent-2);font-style:normal;font-weight:600">阅读 1,284</span></div>
+
+          <div class="toc" onclick="this.classList.toggle('open')">
+            <div class="th">目录 <span class="ar">▾</span></div>
+            <div class="tb"><a>什么是二叉树</a><a>基本性质</a><a>如何表示</a><a>遍历</a><a>小结</a></div>
+          </div>
+
+          <p>二叉树是几乎所有高级数据结构的地基——堆、平衡树、线段树，无一不是它的变体。</p>
+          <h2>基本性质</h2>
+          <p>设高度为 <span>$h$</span>，则一棵二叉树最多包含的节点数为：</p>
+          <p>$$ n_{\max}=\sum_{i=1}^{h}2^{\,i-1}=2^{h}-1 $$</p>
+          <p>只要树高维持在 <span>$O(\log n)$</span>，查找/插入/删除便都是对数级。</p>
+          <h2>如何表示</h2>
+          <p>最直接的方式是<strong>链式结构</strong>：</p>
+          <div class="cb"><div class="cbbar">C++ <button>复制</button></div>
+<pre><code><span class="com">// 二叉树节点</span>
+<span class="kw">struct</span> <span class="ty">Node</span> {
+    <span class="ty">int</span> val;
+    <span class="ty">Node</span> *left, *right;
+    <span class="ty">Node</span>(<span class="ty">int</span> v): val(v), left(<span class="kw">nullptr</span>), right(<span class="kw">nullptr</span>) {}
+};</code></pre></div>
+          <p>代码块超宽时<strong>横向滚动</strong>，不会撑破版面。</p>
+          <div class="arttags">标签：<a>二叉树</a><a>数据结构</a><a>C++</a></div>
+        </div>
+        <div class="mfoot">LeuBlog · © 2026</div>
+      </div></div>
+    </div>
+
+    <!-- ===== 归档 ===== -->
+    <div class="phone">
+      <div class="cap">归档 <span>· 侧栏收为顶栏 + 热力图横滚</span></div>
+      <div class="screen"><div class="bar"></div><div class="scroll">
+        <div class="accent5"></div>
+        <div class="mtop"><span class="burger">☰</span><span class="brand">LeuBlog</span><span class="r">⌕</span></div>
+        <div class="arcbar">当前 <span class="cur">2026 · 6月</span><span class="pick">跳转 ▾</span></div>
+        <div class="pad marc">
+          <div class="yhline">2026 <span>22 篇</span></div>
+          <div class="heatscroll">
+            <div class="hint">全年发布日历（左右滑动）→</div>
+            <div class="cells" id="mcells"></div>
+          </div>
+          <div class="month">六月</div>
+          <div class="r"><span class="dt">06-22</span><a>从背包问题理解状态压缩 DP</a></div>
+          <div class="r"><span class="dt">06-18</span><a>在 2 核 2G 小服务器上部署全栈应用</a></div>
+          <div class="r"><span class="dt">06-14</span><a>最短路三连的取舍</a></div>
+          <div class="month">五月</div>
+          <div class="r"><span class="dt">05-28</span><a>KMP 与 Z 函数的统一视角</a></div>
+          <div class="r"><span class="dt">05-20</span><a>Git 工作流实践</a></div>
+        </div>
+        <div class="mfoot">LeuBlog · © 2026</div>
+      </div></div>
+    </div>
+
+    <!-- ===== 后台 ===== -->
+    <div class="phone">
+      <div class="cap">后台 <span>· 抽屉导航 + 表格横滚（点 ☰）</span></div>
+      <div class="screen"><div class="bar"></div><div class="scroll adm" style="position:relative">
+        <div class="admtop"><span class="burger" onclick="this.closest('.scroll').querySelector('.drawer').classList.add('open')">☰</span><h3>仪表盘</h3><span class="av">L</span></div>
+        <div class="admpad">
+          <div class="stat2">
+            <div class="c"><div class="k">文章总数</div><div class="v">42</div><div class="s">已发布 38 · 草稿 4</div></div>
+            <div class="c"><div class="k">总阅读量</div><div class="v">28,470</div><div class="s"><span class="up">▲ 1,204</span> 近 7 日</div></div>
+            <div class="c"><div class="k">今日访问</div><div class="v">312</div><div class="s"><span class="up">▲ 8.6%</span> 较昨日</div></div>
+            <div class="c"><div class="k">生效公告</div><div class="v">1</div><div class="s">展示中 · 永久</div></div>
+          </div>
+          <div class="apanel"><div class="ah">访问量趋势 · 近 14 天</div><div class="ab"><div class="mchart" id="mc2"></div></div></div>
+          <div class="apanel"><div class="ah">最近文章</div>
+            <div class="scrollx"><table class="m">
+              <thead><tr><th>标题</th><th>分组</th><th>作者</th><th>状态</th><th>阅读</th></tr></thead>
+              <tbody>
+                <tr><td>状态压缩 DP 的本质</td><td>算法</td><td>Leu</td><td><span class="st pub">已发布</span></td><td>1,284</td></tr>
+                <tr><td>二叉树入门</td><td>算法</td><td>Leu</td><td><span class="st pub">已发布</span></td><td>1,284</td></tr>
+                <tr><td>可持久化数据结构初探</td><td>数据结构</td><td>陈编</td><td><span class="st dr">草稿</span></td><td>—</td></tr>
+              </tbody>
+            </table></div>
+            <div class="scrollnote">← 表格可左右滑动查看更多列</div>
+          </div>
+        </div>
+        <!-- 抽屉 -->
+        <div class="drawer">
+          <div class="mask" onclick="this.closest('.drawer').classList.remove('open')"></div>
+          <div class="panel">
+            <div class="lg">LeuBlog 后台</div>
+            <div class="g">概览</div><a class="on">▦ 仪表盘</a>
+            <div class="g">内容</div><a>✎ 文章</a><a>＋ 写文章</a><a>⌗ 分类法</a><a>◰ 媒体库</a>
+            <div class="g">运营</div><a>! 公告</a><a>↗ 传送门</a>
+            <div class="g">系统</div><a>☺ 用户</a><a>⚙ 设置</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+<script>
+  // 归档迷你热力图
+  (function(){
+    const el=document.getElementById('mcells');if(!el)return;
+    let h='';for(let i=0;i<53*7;i++){const r=Math.random();const c=r>.93?'l3':r>.85?'l2':r>.7?'l1':'';h+=`<i class="${c}"></i>`;}
+    el.innerHTML=h;
+  })();
+  // 后台迷你柱状图
+  (function(){
+    const el=document.getElementById('mc2');if(!el)return;
+    const v=[262,248,300,221,284,256,231,290,355,418,372,301,289,312],m=Math.max(...v);
+    el.innerHTML=v.map((x,i)=>`<i class="${i===v.length-1?'t':''}" style="height:${Math.round(x/m*82)+6}px"></i>`).join('');
+  })();
+  // KaTeX
+  function rk(){if(window.renderMathInElement)renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});}
+  document.getElementById('katex').addEventListener('load',rk);setTimeout(rk,600);
+</script>
+</body>
+</html>

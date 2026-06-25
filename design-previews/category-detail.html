@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog — 设计预览 · 分组：算法</title>
+<style>
+  :root{
+    --paper:#faf7f1; --paper-2:#f6efe2; --ink:#2c2620; --ink-soft:#5d564b;
+    --rule:#ddd5c5; --accent:#9c2b22; --accent-2:#c2592f; --gold:#b08328;
+    --muted:#9a9080;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);
+    line-height:1.7;-webkit-font-smoothing:antialiased;font-size:17px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
+  a{color:inherit;text-decoration:none}
+  a:hover{color:var(--accent)}
+
+  .topbar{height:5px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 70%,var(--gold) 100%)}
+
+  .announce{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  .announce .wrap{display:flex;align-items:center;gap:14px;padding:9px 32px;font-size:14px;color:var(--ink-soft)}
+  .announce .tag{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#fff;background:var(--accent);
+    padding:2px 8px;border-radius:2px;font-family:Georgia,serif}
+  .announce .txt{font-style:italic}
+  .announce .x{margin-left:auto;color:var(--muted);cursor:pointer;font-style:normal}
+
+  header.masthead{text-align:center;padding:30px 0 16px;border-bottom:1px solid var(--rule)}
+  .masthead .kicker{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif}
+  .masthead h1{font-size:42px;margin:8px 0 5px;letter-spacing:.04em;font-weight:600;color:var(--ink)}
+  .masthead .sub{font-style:italic;color:var(--ink-soft);font-size:16px}
+
+  nav.main{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  nav.main .wrap{display:flex;justify-content:center;gap:38px;padding:12px 32px}
+  nav.main a{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);font-family:Georgia,serif}
+  nav.main a:hover{color:var(--accent)}
+  nav.main a.active{color:var(--accent);font-weight:700}
+
+  /* 分组页眉 banner */
+  .cat-banner{border-bottom:2px solid var(--accent);padding:34px 0 22px}
+  .crumb{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-family:Georgia,serif}
+  .crumb a{color:var(--accent)}
+  .cat-banner h2{font-size:40px;margin:12px 0 8px;font-weight:700}
+  .cat-banner .desc{margin:0;font-style:italic;color:var(--ink-soft);max-width:620px}
+  .cat-banner .stat{margin-top:12px;font-size:13px;color:var(--muted);font-family:Georgia,serif;letter-spacing:.04em}
+  .cat-banner .stat b{color:var(--accent-2)}
+  /* 组内子筛选 */
+  .subfilter{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .subfilter a{font-size:13px;padding:3px 12px;border:1px solid var(--rule);border-radius:2px;color:var(--ink-soft);background:var(--paper-2)}
+  .subfilter a.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .subfilter a:hover{border-color:var(--accent);color:var(--accent)}
+  .subfilter a.on:hover{color:#fff}
+
+  .layout{display:grid;grid-template-columns:1fr 250px;gap:48px;padding:30px 0 50px}
+
+  /* 文章列表（紧凑） */
+  article.entry{padding:22px 0;border-bottom:1px solid var(--rule)}
+  article.entry:first-of-type{padding-top:8px}
+  .entry .top{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif}
+  .entry h3{font-size:24px;margin:6px 0 7px;font-weight:600;line-height:1.35}
+  .entry h3 a:hover{color:var(--accent)}
+  .entry .meta{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:9px}
+  .entry .meta b{font-style:normal;font-weight:600;color:var(--ink-soft)}
+  .entry .meta .views{color:var(--accent-2);font-style:normal;font-weight:600}
+  .entry p.dek{margin:0;color:var(--ink-soft);font-size:16px}
+  .entry .tags{margin-top:10px;font-size:12px;color:var(--muted)}
+  .entry .tags span{border:1px solid var(--rule);padding:2px 9px;margin-right:7px;border-radius:2px;color:var(--ink-soft)}
+
+  /* 分页 */
+  .pager{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:34px}
+  .pager a,.pager span{min-width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;
+    font-family:Georgia,serif;font-size:14px;border:1px solid var(--rule);border-radius:2px;color:var(--ink-soft)}
+  .pager a:hover{border-color:var(--accent);color:var(--accent)}
+  .pager .cur{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pager .ar{padding:0 12px}
+
+  aside .block{margin-bottom:30px}
+  .section-label{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);
+    font-family:Georgia,serif;border-bottom:2px solid var(--accent);padding-bottom:7px;margin-bottom:8px;
+    display:flex;align-items:center;gap:8px}
+  .section-label::before{content:"";width:8px;height:8px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+  aside .item{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule);font-size:15px}
+  aside .item.on a{color:var(--accent);font-weight:700}
+  aside .item .n{font-size:12px;color:#fff;background:var(--accent-2);font-family:Georgia,serif;padding:1px 8px;border-radius:10px}
+  .cloud a{display:inline-block;margin:0 8px 9px 0;padding:3px 10px;border:1px solid var(--rule);border-radius:2px;
+    font-size:13px;color:var(--ink-soft);background:var(--paper-2)}
+  .cloud a:hover{border-color:var(--accent);color:var(--accent)}
+
+  footer{border-top:3px double var(--accent);padding:24px 0 40px;text-align:center;color:var(--muted);font-size:13px;font-style:italic}
+  body{background-color:var(--paper);background-image:radial-gradient(rgba(44,38,32,.13) 1.5px,transparent 1.7px);background-size:24px 24px;background-attachment:scroll}
+</style>
+</head>
+<body>
+  <div class="topbar"></div>
+
+  <div class="announce"><div class="wrap">
+    <span class="tag">公告</span>
+    <span class="txt">站点已迁移至新服务器，如遇访问异常请稍后重试。— 2026/06/24</span>
+    <span class="x">×</span>
+  </div></div>
+
+  <header class="masthead"><div class="wrap">
+    <div class="kicker">Algorithms · Computer Science · Notes</div>
+    <h1>LeuBlog</h1>
+    <div class="sub">算法学习记录 与 计算机技术教程</div>
+  </div></header>
+
+  <nav class="main"><div class="wrap">
+    <a href="#">首页</a><a class="active" href="#">分组</a><a href="#">标签</a><a href="#">归档</a><a href="#">关于</a>
+  </div></nav>
+
+  <div class="wrap cat-banner">
+    <div class="crumb"><a href="#">首页</a> &nbsp;/&nbsp; <a href="#">分组</a> &nbsp;/&nbsp; 算法</div>
+    <h2>算法</h2>
+    <p class="desc">动态规划、图论、字符串、数论……竞赛与工程中反复出现的算法范式与题解笔记。</p>
+    <div class="stat">共 <b>18</b> 篇 · 最近更新 2026 / 06 / 22</div>
+    <div class="subfilter">
+      <a class="on" href="#">全部</a>
+      <a href="#">动态规划 6</a>
+      <a href="#">图论 5</a>
+      <a href="#">字符串 3</a>
+      <a href="#">数论 2</a>
+      <a href="#">其他 2</a>
+    </div>
+  </div>
+
+  <div class="wrap layout">
+    <main>
+      <article class="entry">
+        <div class="top">动态规划</div>
+        <h3><a href="#">从背包问题理解状态压缩 DP 的本质</a></h3>
+        <div class="meta">2026 年 6 月 22 日 · <b>Leu</b> · <span class="views">阅读 1,284</span></div>
+        <p class="dek">当物品数量进入指数级，朴素 DP 不再可行。本文用三道经典题，推导位运算状态压缩的通用范式。</p>
+        <div class="tags"><span>DP</span><span>位运算</span><span>C++</span></div>
+      </article>
+
+      <article class="entry">
+        <div class="top">图论</div>
+        <h3><a href="#">最短路三连：Dijkstra、Bellman-Ford 与 SPFA 的取舍</a></h3>
+        <div class="meta">2026 年 6 月 14 日 · <b>Leu</b> · <span class="views">阅读 1,507</span></div>
+        <p class="dek">同样是最短路，为什么有人偏爱 SPFA、有人坚持堆优化 Dijkstra？给出一份选择清单。</p>
+        <div class="tags"><span>图论</span><span>最短路</span></div>
+      </article>
+
+      <article class="entry">
+        <div class="top">数据结构 · 算法</div>
+        <h3><a href="#">线段树从入门到区间历史最值</a></h3>
+        <div class="meta">2026 年 6 月 05 日 · <b>Leu</b> · <span class="views">阅读 876</span></div>
+        <p class="dek">区间加、区间最值、历史最值——一步步把线段树的标记下传讲清楚。</p>
+        <div class="tags"><span>线段树</span><span>区间</span></div>
+      </article>
+
+      <article class="entry">
+        <div class="top">字符串</div>
+        <h3><a href="#">字符串匹配：KMP 与 Z 函数的统一视角</a></h3>
+        <div class="meta">2026 年 5 月 28 日 · <b>Leu</b> · <span class="views">阅读 1,021</span></div>
+        <p class="dek">前缀函数与 Z 函数本是一体两面，用同一张图理解它们的构造过程。</p>
+        <div class="tags"><span>字符串</span><span>KMP</span></div>
+      </article>
+
+      <article class="entry">
+        <div class="top">数论</div>
+        <h3><a href="#">从扩展欧几里得到逆元的若干求法</a></h3>
+        <div class="meta">2026 年 5 月 16 日 · <b>Leu</b> · <span class="views">阅读 642</span></div>
+        <p class="dek">exgcd、费马小定理、线性递推——三种求逆元方法的适用边界。</p>
+        <div class="tags"><span>数论</span><span>逆元</span></div>
+      </article>
+
+      <article class="entry">
+        <div class="top">动态规划</div>
+        <h3><a href="#">数位 DP 的记忆化模板与常见陷阱</a></h3>
+        <div class="meta">2026 年 5 月 08 日 · <b>Leu</b> · <span class="views">阅读 593</span></div>
+        <p class="dek">前导零、上界限制、状态设计——把数位 DP 写成一套可套用的模板。</p>
+        <div class="tags"><span>DP</span><span>数位</span></div>
+      </article>
+
+      <div class="pager">
+        <span class="ar" style="color:var(--muted)">← 上一页</span>
+        <span class="cur">1</span>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a class="ar" href="#">下一页 →</a>
+      </div>
+    </main>
+
+    <aside>
+      <div class="block">
+        <div class="section-label">其他分组</div>
+        <div class="item on"><a href="#">算法</a><span class="n">18</span></div>
+        <div class="item"><a href="#">数据结构</a><span class="n">11</span></div>
+        <div class="item"><a href="#">系统与工具</a><span class="n">7</span></div>
+        <div class="item"><a href="#">读书与杂谈</a><span class="n">4</span></div>
+      </div>
+
+      <div class="block">
+        <div class="section-label">本组标签</div>
+        <div class="cloud">
+          <a href="#">DP</a><a href="#">图论</a><a href="#">最短路</a><a href="#">线段树</a>
+          <a href="#">字符串</a><a href="#">KMP</a><a href="#">数论</a><a href="#">逆元</a>
+          <a href="#">位运算</a><a href="#">C++</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer><div class="wrap">LeuBlog · 由 Next.js 与衬线字体驱动 · © 2026</div></footer>
+</body>
+</html>

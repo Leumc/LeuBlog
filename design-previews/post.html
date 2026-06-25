@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog — 二叉树入门</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root{
+    --paper:#faf7f1; --paper-2:#f6efe2; --ink:#2c2620; --ink-soft:#544e44; --rule:#ddd5c5;
+    --accent:#9c2b22; --accent-2:#c2592f; --gold:#b08328; --muted:#9a9080;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,"SFMono-Regular","Cascadia Code","Consolas","Liberation Mono",monospace;
+    --code-bg:#272320; --code-fg:#e9e2d4; --kw:#ec8c7c; --ty:#6fd0c4; --str:#b6d77a; --com:#8f8674; --num:#e0a45a; --fn:#b9a6f0;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.85;-webkit-font-smoothing:antialiased;font-size:18px}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 32px}
+  a{color:inherit;text-decoration:none}a:hover{color:var(--accent)}
+
+  /* 阅读进度条 */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));z-index:50}
+
+  .topbar{height:5px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 70%,var(--gold) 100%)}
+  nav.main{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  nav.main .wrap{display:flex;align-items:center;gap:30px;padding:12px 32px}
+  nav.main .brand{font-size:20px;font-weight:700;letter-spacing:.02em;margin-right:auto}
+  nav.main a{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);font-family:Georgia,serif}
+  nav.main a:hover{color:var(--accent)}
+
+  .layout{display:grid;grid-template-columns:1fr 230px;gap:54px;padding:18px 0 70px}
+
+  /* 文章头 */
+  .crumb{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-family:Georgia,serif;margin:22px 0 14px}
+  .crumb a{color:var(--accent)}
+  article .cat{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;background:var(--accent);font-family:Georgia,serif;padding:3px 10px;border-radius:2px}
+  article h1{font-size:42px;line-height:1.25;font-weight:700;margin:16px 0 14px;letter-spacing:.01em}
+  .meta{display:flex;flex-wrap:wrap;gap:18px;font-size:13px;color:var(--muted);font-style:italic;
+    border-bottom:3px double var(--accent);padding-bottom:18px;margin-bottom:8px}
+  .meta b{font-style:normal;font-weight:600;color:var(--ink-soft)}
+  .meta .v{color:var(--accent-2);font-style:normal;font-weight:600}
+
+  /* 正文排版 */
+  .body{padding-top:10px}
+  .body h2{font-size:28px;font-weight:700;color:var(--ink);line-height:1.3;
+    border-bottom:1px solid var(--rule);padding-bottom:10px;margin:46px 0 18px;scroll-margin-top:80px}
+  .body h2 .idx{color:var(--accent);font-family:Georgia,serif;font-size:20px;margin-right:12px;font-weight:700}
+  .body p{margin:0 0 18px}
+  .body p.lead::first-letter{font-size:58px;float:left;line-height:.82;padding:8px 12px 0 0;color:var(--accent);font-weight:700}
+  .body strong{color:var(--accent-2)}
+  .body ul,.body ol{margin:0 0 18px;padding-left:1.4em}
+  .body li{margin:6px 0}
+  .body code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);border:1px solid var(--rule);padding:1px 6px;border-radius:3px;color:var(--accent)}
+  blockquote{margin:24px 0;padding:6px 22px;border-left:3px solid var(--accent);color:var(--ink-soft);font-style:italic;background:var(--paper-2)}
+  blockquote p{margin:8px 0}
+  .katex-display{margin:24px 0;overflow-x:auto;overflow-y:hidden;padding:6px 0}
+
+  /* 代码块 */
+  .code{position:relative;margin:24px 0;border-radius:5px;background:var(--code-bg);overflow:hidden;box-shadow:0 1px 0 var(--rule)}
+  .code .bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #3a332c;background:#1f1b18}
+  .code .lang{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a59a86}
+  .code .copy{font-family:Georgia,serif;font-size:12px;letter-spacing:.06em;color:#e0d6c5;border:1px solid #4a4239;background:transparent;
+    padding:3px 12px;border-radius:3px;cursor:pointer}
+  .code .copy:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .code .copy.done{background:var(--accent-2);color:#fff;border-color:var(--accent-2)}
+  .code pre{margin:0;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:14px;line-height:1.75;color:var(--code-fg)}
+  /* 关键修复：代码块内的 <code> 不沿用行内药丸样式（否则跨行每行都描框） */
+  .code pre code{background:none;border:none;padding:0;margin:0;border-radius:0;color:inherit;font-size:inherit}
+  .kw{color:var(--kw);font-weight:600}.ty{color:var(--ty)}.str{color:var(--str)}.com{color:var(--com);font-style:italic}.num{color:var(--num)}.fn{color:var(--fn)}
+
+  /* 配图 */
+  figure{margin:28px 0;text-align:center}
+  figure .frame{border:1px solid var(--rule);background:var(--paper-2);padding:18px;border-radius:3px}
+  figcaption{font-size:13px;color:var(--muted);font-style:italic;margin-top:10px}
+  .tree-node{fill:#fff;stroke:var(--accent);stroke-width:1.6}
+  .tree-edge{stroke:var(--ink-soft);stroke-width:1.4}
+  .tree-t{font-family:Georgia,serif;font-size:15px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+
+  /* 文末标签 + 上下篇 */
+  .tags{margin:34px 0 0;padding-top:18px;border-top:1px solid var(--rule);font-size:13px;color:var(--muted)}
+  .tags a{display:inline-block;border:1px solid var(--rule);padding:3px 11px;margin:0 7px 8px 0;border-radius:2px;color:var(--ink-soft)}
+  .tags a:hover{border-color:var(--accent);color:var(--accent)}
+  .pn{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px;border-top:3px double var(--accent);padding-top:22px}
+  .pn a{display:block}.pn .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-family:Georgia,serif}
+  .pn .t{font-size:17px;font-weight:600;margin-top:5px}.pn .t:hover{color:var(--accent)}
+  .pn .next{text-align:right}
+
+  /* 目录 */
+  aside .toc{position:sticky;top:18px}
+  .toc .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-family:Georgia,serif;border-bottom:2px solid var(--accent);padding-bottom:7px;margin-bottom:10px}
+  .toc a{display:block;font-size:14px;color:var(--ink-soft);padding:6px 0 6px 12px;border-left:2px solid var(--rule);line-height:1.4}
+  .toc a:hover{color:var(--accent)}
+  .toc a.on{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+  .toc .share{margin-top:20px;border-top:1px solid var(--rule);padding-top:14px;font-size:13px}
+  .toc .share .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-family:Georgia,serif;margin-bottom:6px}
+  .toc .share a{padding:0;border:none;color:var(--accent)}
+
+  footer{border-top:3px double var(--accent);padding:24px 0 40px;text-align:center;color:var(--muted);font-size:13px;font-style:italic}
+  body{background-color:var(--paper);background-image:radial-gradient(rgba(44,38,32,.13) 1.5px,transparent 1.7px);background-size:24px 24px;background-attachment:scroll}
+  /* 文章目录 = 右侧贯穿整页深砖红色条（同归档侧栏） */
+  aside{background:#87211a;border-left:4px solid #c96a4a}
+  aside .toc{background:transparent;border-left:none;position:sticky;top:18px;max-height:calc(100vh - 36px);overflow:auto;padding:18px 16px 18px 18px;scrollbar-width:none}
+  .toc::-webkit-scrollbar{width:0;display:none}
+  .toc .lbl{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
+  .toc a{color:rgba(255,255,255,.85);border-left-color:rgba(255,255,255,.25)}
+  .toc a:hover{color:#fff}
+  .toc a.on{color:#fff;font-weight:600;border-left-color:#fff}
+  .toc .share{border-top-color:rgba(255,255,255,.25);color:rgba(255,255,255,.7)}
+  .toc .share .k{color:rgba(255,255,255,.6)}
+  .toc .share a{color:#ffe2cf}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="topbar"></div>
+<nav class="main"><div class="wrap">
+  <a class="brand" href="#">LeuBlog</a>
+  <a href="#">首页</a><a href="#">分组</a><a href="#">标签</a><a href="#">归档</a><a href="#">关于</a>
+</div></nav>
+
+<div class="wrap layout">
+  <article>
+    <div class="crumb"><a href="#">首页</a> / <a href="#">算法</a> / <a href="#">数据结构</a></div>
+    <span class="cat">算法 · 数据结构</span>
+    <h1>二叉树入门：从定义到遍历</h1>
+    <div class="meta">
+      <span>2026 年 6 月 24 日</span><span>作者 <b>Leu</b></span>
+      <span>阅读时长 8 分钟</span><span class="v">阅读 1,284</span>
+    </div>
+
+    <div class="body">
+      <p class="lead">二叉树是几乎所有高级数据结构的地基——堆、平衡树、字典树、线段树，无一不是它的变体。理解它，等于拿到了通往一大片算法世界的钥匙。本文从最朴素的定义出发，讲清它的性质、表示与遍历。</p>
+
+      <h2 id="s1">什么是二叉树</h2>
+      <p><strong>二叉树（Binary Tree）</strong>是一种树形结构，其中每个节点至多有两个子节点，分别称为<strong>左子节点</strong>与<strong>右子节点</strong>。注意「左」「右」是有序的：交换两棵子树会得到一棵不同的二叉树。</p>
+      <blockquote><p>一棵二叉树要么为空，要么由一个根节点和两棵互不相交的、分别称为左子树和右子树的二叉树组成——这是一个典型的递归定义。</p></blockquote>
+      <p>几个常见的特殊形态：<strong>满二叉树</strong>（每一层都被填满）、<strong>完全二叉树</strong>（除最后一层外填满，且最后一层靠左）、<strong>平衡二叉树</strong>（左右子树高度差有界）。其中完全二叉树正是二叉堆用数组存储的基础。</p>
+
+      <h2 id="s2">基本性质</h2>
+      <p>设二叉树的高度为 $h$（只有根节点时 $h=1$）。可以归纳证明，第 $i$ 层最多有 $2^{\,i-1}$ 个节点，于是一棵高度为 $h$ 的二叉树最多包含的节点数为：</p>
+      <p>$$ n_{\max} = \sum_{i=1}^{h} 2^{\,i-1} = 2^{h} - 1 $$</p>
+      <p>反过来，含有 $n$ 个节点的二叉树，其高度至少为 $\lceil \log_2 (n+1) \rceil$。这条下界解释了为什么<strong>平衡</strong>如此重要：只要树高维持在 $O(\log n)$，查找、插入、删除就都能做到 $O(\log n)$；一旦退化成链，复杂度便跌回 $O(n)$。</p>
+      <ul>
+        <li>满二叉树：节点数恰为 $2^{h}-1$；</li>
+        <li>含 $n$ 个节点的完全二叉树高度为 $\lfloor \log_2 n \rfloor + 1$；</li>
+        <li>任意二叉树中，度为 0 的节点数 $n_0$ 与度为 2 的节点数 $n_2$ 满足 $n_0 = n_2 + 1$。</li>
+      </ul>
+
+      <h2 id="s3">如何表示一棵二叉树</h2>
+      <p>最直接的方式是用<strong>链式结构</strong>：每个节点保存一个值和两个指向子节点的指针。</p>
+      <div class="code" data-lang="cpp">
+        <div class="bar"><span class="lang">C++</span><button class="copy">复制</button></div>
+<pre><code><span class="com">// 二叉树节点的链式定义</span>
+<span class="kw">struct</span> <span class="ty">Node</span> {
+    <span class="ty">int</span> val;
+    <span class="ty">Node</span> *left, *right;
+    <span class="fn">Node</span>(<span class="ty">int</span> v) : val(v), left(<span class="kw">nullptr</span>), right(<span class="kw">nullptr</span>) {}
+};</code></pre>
+      </div>
+      <p>对于完全二叉树，还可以用<strong>数组</strong>隐式存储：下标从 <code>1</code> 开始，节点 <code>i</code> 的左右孩子分别是 <code>2*i</code> 与 <code>2*i+1</code>，父节点是 <code>i/2</code>。二叉堆正是这样做的，省去了所有指针开销。</p>
+
+      <figure>
+        <div class="frame">
+          <svg width="100%" viewBox="0 0 520 270" role="img" aria-label="二叉搜索树示意图">
+            <line class="tree-edge" x1="260" y1="34" x2="150" y2="104"/>
+            <line class="tree-edge" x1="260" y1="34" x2="370" y2="104"/>
+            <line class="tree-edge" x1="150" y1="104" x2="92" y2="174"/>
+            <line class="tree-edge" x1="150" y1="104" x2="210" y2="174"/>
+            <line class="tree-edge" x1="370" y1="104" x2="430" y2="174"/>
+            <line class="tree-edge" x1="210" y1="174" x2="172" y2="244"/>
+            <line class="tree-edge" x1="210" y1="174" x2="250" y2="244"/>
+            <line class="tree-edge" x1="430" y1="174" x2="392" y2="244"/>
+            <g>
+              <circle class="tree-node" cx="260" cy="34" r="19"/><text class="tree-t" x="260" y="34">8</text>
+              <circle class="tree-node" cx="150" cy="104" r="19"/><text class="tree-t" x="150" y="104">3</text>
+              <circle class="tree-node" cx="370" cy="104" r="19"/><text class="tree-t" x="370" y="104">10</text>
+              <circle class="tree-node" cx="92" cy="174" r="19"/><text class="tree-t" x="92" y="174">1</text>
+              <circle class="tree-node" cx="210" cy="174" r="19"/><text class="tree-t" x="210" y="174">6</text>
+              <circle class="tree-node" cx="430" cy="174" r="19"/><text class="tree-t" x="430" y="174">14</text>
+              <circle class="tree-node" cx="172" cy="244" r="19"/><text class="tree-t" x="172" y="244">4</text>
+              <circle class="tree-node" cx="250" cy="244" r="19"/><text class="tree-t" x="250" y="244">7</text>
+              <circle class="tree-node" cx="392" cy="244" r="19"/><text class="tree-t" x="392" y="244">13</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>图 1：一棵二叉搜索树。中序遍历它，会得到有序序列 1 3 4 6 7 8 10 13 14。</figcaption>
+      </figure>
+
+      <h2 id="s4">遍历：访问每一个节点</h2>
+      <p>遍历是对二叉树最基本的操作，按访问根节点的时机分为三种<strong>深度优先</strong>方式：前序（根左右）、中序（左根右）、后序（左右根）。递归写法极其优雅：</p>
+      <div class="code" data-lang="cpp">
+        <div class="bar"><span class="lang">C++</span><button class="copy">复制</button></div>
+<pre><code><span class="com">// 中序遍历：左 -&gt; 根 -&gt; 右</span>
+<span class="kw">void</span> <span class="fn">inorder</span>(<span class="ty">Node</span>* root) {
+    <span class="kw">if</span> (root == <span class="kw">nullptr</span>) <span class="kw">return</span>;
+    <span class="fn">inorder</span>(root-&gt;left);
+    cout &lt;&lt; root-&gt;val &lt;&lt; <span class="str">' '</span>;   <span class="com">// 访问根</span>
+    <span class="fn">inorder</span>(root-&gt;right);
+}</code></pre>
+      </div>
+      <p>每个节点恰好被访问一次，因此三种遍历的时间复杂度均为 $O(n)$，空间复杂度取决于递归栈深度，即树高 $O(h)$。若想避免递归，可以用一个显式栈改写；而<strong>层序遍历</strong>（广度优先）则需要借助队列：</p>
+      <div class="code" data-lang="cpp">
+        <div class="bar"><span class="lang">C++</span><button class="copy">复制</button></div>
+<pre><code><span class="com">// 层序遍历：借助队列逐层访问</span>
+<span class="kw">void</span> <span class="fn">levelOrder</span>(<span class="ty">Node</span>* root) {
+    <span class="kw">if</span> (!root) <span class="kw">return</span>;
+    <span class="ty">queue</span>&lt;<span class="ty">Node</span>*&gt; q;
+    q.<span class="fn">push</span>(root);
+    <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+        <span class="ty">Node</span>* cur = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();
+        cout &lt;&lt; cur-&gt;val &lt;&lt; <span class="str">' '</span>;
+        <span class="kw">if</span> (cur-&gt;left)  q.<span class="fn">push</span>(cur-&gt;left);
+        <span class="kw">if</span> (cur-&gt;right) q.<span class="fn">push</span>(cur-&gt;right);
+    }
+}</code></pre>
+      </div>
+
+      <h2 id="s5">小结</h2>
+      <p>从一个递归定义出发，我们看到了二叉树如何用 $2^{h}-1$ 约束规模、如何用链式或数组表示、又如何用四种顺序被遍历。把这些基本功握牢，再去看堆、BST、线段树时，你会发现它们不过是在这棵朴素的树上长出的新枝。</p>
+      <blockquote><p>下一篇我们将给二叉树「加上规则」，进入<strong>二叉搜索树</strong>的世界，并讨论它为什么需要被「平衡」。</p></blockquote>
+
+      <div class="tags">标签：
+        <a href="#">二叉树</a><a href="#">数据结构</a><a href="#">C++</a><a href="#">遍历</a>
+      </div>
+
+      <div class="pn">
+        <a class="prev" href="#"><div class="k">← 上一篇</div><div class="t">手写一棵 Treap 与 FHQ 平衡树</div></a>
+        <a class="next" href="#"><div class="k">下一篇 →</div><div class="t">二叉搜索树与它的平衡之道</div></a>
+      </div>
+    </div>
+  </article>
+
+  <aside>
+    <nav class="toc">
+      <div class="lbl">目录</div>
+      <a href="#s1" class="on">什么是二叉树</a>
+      <a href="#s2">基本性质</a>
+      <a href="#s3">如何表示</a>
+      <a href="#s4">遍历</a>
+      <a href="#s5">小结</a>
+      <div class="share"><div class="k">分享</div>
+        <a href="#">复制链接</a> · <a href="#">RSS</a>
+      </div>
+    </nav>
+  </aside>
+</div>
+
+<footer><div class="wrap">LeuBlog · 由 Next.js 与衬线字体驱动 · © 2026</div></footer>
+
+<script>
+  // 复制按钮
+  document.querySelectorAll('.code').forEach(box=>{
+    const btn=box.querySelector('.copy'), code=box.querySelector('code');
+    btn.addEventListener('click',()=>{
+      const text=code.innerText;
+      navigator.clipboard.writeText(text).then(()=>{
+        btn.textContent='已复制';btn.classList.add('done');
+        setTimeout(()=>{btn.textContent='复制';btn.classList.remove('done');},1500);
+      });
+    });
+  });
+  // 阅读进度
+  const prog=document.getElementById('progress');
+  // 目录高亮
+  const links=[...document.querySelectorAll('.toc a[href^="#s"]')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  function onScroll(){
+    const h=document.documentElement;
+    prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+    let idx=0;
+    secs.forEach((s,i)=>{if(s.getBoundingClientRect().top<=120)idx=i;});
+    links.forEach((a,i)=>a.classList.toggle('on',i===idx));
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+</script>
+</body>
+</html>

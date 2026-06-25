@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog · 设计预览存档</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --paper:#faf7f1;--paper-2:#f6efe2;--ink:#2c2620;--ink-soft:#544e44;--rule:#ddd5c5;
+    --accent:#9c2b22;--accent-2:#c2592f;--gold:#b08328;--muted:#9a9080;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+  }
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.7;padding:0}
+  .topbar{height:5px;background:linear-gradient(90deg,var(--accent),var(--accent-2) 70%,var(--gold))}
+  .wrap{max-width:880px;margin:0 auto;padding:0 32px}
+  header{text-align:center;padding:44px 0 24px;border-bottom:3px double var(--accent)}
+  header .k{font-family:Georgia,serif;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2)}
+  header h1{font-size:38px;font-weight:700;margin:10px 0 8px}
+  header p{font-style:italic;color:var(--ink-soft)}
+  .grp{font-family:Georgia,serif;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);
+    border-bottom:2px solid var(--accent);padding-bottom:7px;margin:34px 0 4px;display:flex;align-items:center;gap:8px}
+  .grp::before{content:"";width:8px;height:8px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+  a.row{display:flex;align-items:baseline;gap:14px;padding:14px 4px;border-bottom:1px solid var(--rule);color:inherit;text-decoration:none}
+  a.row:hover{color:var(--accent)}
+  a.row .nm{font-size:19px;font-weight:600;min-width:160px}
+  a.row .d{font-size:14px;color:var(--ink-soft);font-style:italic}
+  a.row .f{margin-left:auto;font-family:Georgia,serif;font-size:12px;color:var(--muted)}
+  footer{border-top:3px double var(--accent);margin-top:34px;padding:22px 0 40px;text-align:center;color:var(--muted);font-size:13px;font-style:italic}
+  body{background-color:var(--paper);background-image:radial-gradient(rgba(44,38,32,.13) 1.5px,transparent 1.7px);background-size:24px 24px;background-attachment:scroll}
+</style>
+</head>
+<body>
+  <div class="topbar"></div>
+  <div class="wrap">
+    <header>
+      <div class="k">Design Previews · 存档</div>
+      <h1>LeuBlog 设计预览</h1>
+      <p>正式开发前定稿的页面预览，供实现时比对参考。</p>
+    </header>
+
+    <div class="grp">读者侧</div>
+    <a class="row" href="homepage.html"><span class="nm">首页</span><span class="d">最近文章 + 公告条 + 侧栏传送门</span><span class="f">homepage.html</span></a>
+    <a class="row" href="categories.html"><span class="nm">分组总览</span><span class="d">每分组横向区块 + 标签云入口</span><span class="f">categories.html</span></a>
+    <a class="row" href="category-detail.html"><span class="nm">分组详情</span><span class="d">组内子筛选 + 列表 + 分页 + 侧栏</span><span class="f">category-detail.html</span></a>
+    <a class="row" href="tags.html"><span class="nm">标签总览</span><span class="d">文章分组 → 标签组 → 标签 分层</span><span class="f">tags.html</span></a>
+    <a class="row" href="archive.html"><span class="nm">归档</span><span class="d">跟随焦点层级侧栏 + 全年/月历热力图</span><span class="f">archive.html</span></a>
+    <a class="row" href="post.html"><span class="nm">文章阅读页</span><span class="d">LaTeX + 深色代码块/复制 + 目录</span><span class="f">post.html</span></a>
+    <a class="row" href="about.html"><span class="nm">关于</span><span class="d">内容取自后台设置</span><span class="f">about.html</span></a>
+    <a class="row" href="404.html"><span class="nm">404 / 空状态 / 500</span><span class="d">同版式复用，仅改顶部文案</span><span class="f">404.html</span></a>
+
+    <div class="grp">后台 / 入口</div>
+    <a class="row" href="admin.html"><span class="nm">后台（全部页面）</span><span class="d">左导航切换 9 个页面，实用优先</span><span class="f">admin.html</span></a>
+    <a class="row" href="login.html"><span class="nm">登录</span><span class="d">衬线字标 + 无衬线表单</span><span class="f">login.html</span></a>
+
+    <div class="grp">适配</div>
+    <a class="row" href="mobile.html"><span class="nm">移动端适配</span><span class="d">首页 / 文章 / 归档 / 后台 四屏窄屏布局</span><span class="f">mobile.html</span></a>
+
+    <footer>LeuBlog · 设计预览存档 · 以这些为实现视觉/交互基准</footer>
+  </div>
+</body>
+</html>

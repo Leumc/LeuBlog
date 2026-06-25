@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog — 设计预览 · 分组</title>
+<style>
+  :root{
+    --paper:#faf7f1; --paper-2:#f6efe2; --ink:#2c2620; --ink-soft:#5d564b;
+    --rule:#ddd5c5; --accent:#9c2b22; --accent-2:#c2592f; --gold:#b08328;
+    --muted:#9a9080;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);
+    line-height:1.7;-webkit-font-smoothing:antialiased;font-size:17px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
+  a{color:inherit;text-decoration:none}
+  a:hover{color:var(--accent)}
+
+  .topbar{height:5px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 70%,var(--gold) 100%)}
+
+  .announce{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  .announce .wrap{display:flex;align-items:center;gap:14px;padding:9px 32px;font-size:14px;color:var(--ink-soft)}
+  .announce .tag{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#fff;background:var(--accent);
+    padding:2px 8px;border-radius:2px;font-family:Georgia,serif}
+  .announce .txt{font-style:italic}
+  .announce .x{margin-left:auto;color:var(--muted);cursor:pointer;font-style:normal}
+
+  header.masthead{text-align:center;padding:30px 0 16px;border-bottom:1px solid var(--rule)}
+  .masthead .kicker{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif}
+  .masthead h1{font-size:42px;margin:8px 0 5px;letter-spacing:.04em;font-weight:600;color:var(--ink)}
+  .masthead .sub{font-style:italic;color:var(--ink-soft);font-size:16px}
+
+  nav.main{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  nav.main .wrap{display:flex;justify-content:center;gap:38px;padding:12px 32px}
+  nav.main a{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);font-family:Georgia,serif}
+  nav.main a:hover{color:var(--accent)}
+  nav.main a.active{color:var(--accent);font-weight:700}
+
+  /* 面包屑 + 页眉 */
+  .pagehead{padding:30px 0 6px}
+  .crumb{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-family:Georgia,serif}
+  .crumb a{color:var(--accent)}
+  .pagehead h2{font-size:34px;margin:10px 0 4px;font-weight:600}
+  .pagehead .lead{font-style:italic;color:var(--ink-soft);margin:0}
+  .pagehead .count{color:var(--accent-2);font-style:normal;font-weight:600}
+
+  /* 分组块 —— 左右两栏，细线分隔，无卡片 */
+  .cat-block{display:grid;grid-template-columns:300px 1fr;gap:40px;
+    padding:30px 0;border-bottom:1px solid var(--rule)}
+  .cat-block:first-of-type{border-top:2px solid var(--accent);margin-top:18px}
+  .cat-meta .label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;background:var(--accent);
+    font-family:Georgia,serif;padding:2px 9px;border-radius:2px}
+  .cat-meta h3{font-size:26px;margin:12px 0 8px;font-weight:600}
+  .cat-meta p{margin:0 0 14px;color:var(--ink-soft);font-size:15px;font-style:italic;line-height:1.6}
+  .cat-meta .stat{font-size:13px;color:var(--muted)}
+  .cat-meta .stat b{color:var(--accent-2);font-weight:700}
+  .cat-meta .view{display:inline-block;margin-top:14px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    font-family:Georgia,serif;border-bottom:2px solid var(--accent);color:var(--accent);padding-bottom:2px}
+
+  .cat-list .row{display:flex;justify-content:space-between;align-items:baseline;gap:18px;
+    padding:11px 0;border-bottom:1px dotted var(--rule)}
+  .cat-list .row:last-child{border-bottom:none}
+  .cat-list .row a{font-size:17px}
+  .cat-list .row .d{font-size:12px;color:var(--muted);font-style:italic;white-space:nowrap;font-family:Georgia,serif}
+
+  /* 标签云 */
+  .tags-section{padding:36px 0 10px}
+  .section-label{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);
+    font-family:Georgia,serif;border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:16px;
+    display:flex;align-items:center;gap:8px}
+  .section-label::before{content:"";width:9px;height:9px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+  .cloud a{display:inline-block;margin:0 10px 12px 0;padding:4px 12px;border:1px solid var(--rule);
+    border-radius:2px;font-size:14px;color:var(--ink-soft);background:var(--paper-2)}
+  .cloud a:hover{border-color:var(--accent);color:var(--accent)}
+  .cloud a .n{color:var(--muted);font-size:12px;font-family:Georgia,serif}
+  .cloud a.big{font-size:18px;color:var(--accent)}
+
+  footer{border-top:3px double var(--accent);padding:24px 0 40px;text-align:center;color:var(--muted);font-size:13px;font-style:italic;margin-top:30px}
+  body{background-color:var(--paper);background-image:radial-gradient(rgba(44,38,32,.13) 1.5px,transparent 1.7px);background-size:24px 24px;background-attachment:scroll}
+</style>
+</head>
+<body>
+  <div class="topbar"></div>
+
+  <div class="announce"><div class="wrap">
+    <span class="tag">公告</span>
+    <span class="txt">站点已迁移至新服务器，如遇访问异常请稍后重试。— 2026/06/24</span>
+    <span class="x">×</span>
+  </div></div>
+
+  <header class="masthead"><div class="wrap">
+    <div class="kicker">Algorithms · Computer Science · Notes</div>
+    <h1>LeuBlog</h1>
+    <div class="sub">算法学习记录 与 计算机技术教程</div>
+  </div></header>
+
+  <nav class="main"><div class="wrap">
+    <a href="#">首页</a><a class="active" href="#">分组</a><a href="#">标签</a><a href="#">归档</a><a href="#">关于</a>
+  </div></nav>
+
+  <div class="wrap">
+    <div class="pagehead">
+      <div class="crumb"><a href="#">首页</a> &nbsp;/&nbsp; 分组</div>
+      <h2>按分组浏览</h2>
+      <p class="lead">共 <span class="count">4</span> 个分组 · <span class="count">40</span> 篇文章</p>
+    </div>
+
+    <!-- 分组 1 -->
+    <div class="cat-block">
+      <div class="cat-meta">
+        <span class="label">算法</span>
+        <h3>算法</h3>
+        <p>动态规划、图论、字符串、数论……竞赛与工程中反复出现的算法范式与题解笔记。</p>
+        <div class="stat">共 <b>18</b> 篇 · 最近更新 6 月 22 日</div>
+        <a class="view" href="#">查看全部 →</a>
+      </div>
+      <div class="cat-list">
+        <div class="row"><a href="#">从背包问题理解状态压缩 DP 的本质</a><span class="d">06 / 22</span></div>
+        <div class="row"><a href="#">最短路三连：Dijkstra、Bellman-Ford 与 SPFA</a><span class="d">06 / 14</span></div>
+        <div class="row"><a href="#">线段树从入门到区间历史最值</a><span class="d">06 / 05</span></div>
+        <div class="row"><a href="#">字符串匹配：KMP 与 Z 函数的统一视角</a><span class="d">05 / 28</span></div>
+      </div>
+    </div>
+
+    <!-- 分组 2 -->
+    <div class="cat-block">
+      <div class="cat-meta">
+        <span class="label">数据结构</span>
+        <h3>数据结构</h3>
+        <p>从平衡树到并查集，记录各类数据结构的实现细节与适用场景。</p>
+        <div class="stat">共 <b>11</b> 篇 · 最近更新 6 月 09 日</div>
+        <a class="view" href="#">查看全部 →</a>
+      </div>
+      <div class="cat-list">
+        <div class="row"><a href="#">并查集的按秩合并与路径压缩复杂度证明</a><span class="d">06 / 09</span></div>
+        <div class="row"><a href="#">手写一棵 Treap 与 FHQ 平衡树</a><span class="d">05 / 30</span></div>
+        <div class="row"><a href="#">单调栈与单调队列的本质</a><span class="d">05 / 12</span></div>
+      </div>
+    </div>
+
+    <!-- 分组 3 -->
+    <div class="cat-block">
+      <div class="cat-meta">
+        <span class="label">系统与工具</span>
+        <h3>系统与工具</h3>
+        <p>部署、运维、开发工具链——把环境折腾顺手的实践记录。</p>
+        <div class="stat">共 <b>7</b> 篇 · 最近更新 6 月 18 日</div>
+        <a class="view" href="#">查看全部 →</a>
+      </div>
+      <div class="cat-list">
+        <div class="row"><a href="#">在 2 核 2G 小服务器上优雅地部署全栈应用</a><span class="d">06 / 18</span></div>
+        <div class="row"><a href="#">用 systemd 管理你的小工具进程</a><span class="d">06 / 02</span></div>
+        <div class="row"><a href="#">Git 工作流：从一个人到一个团队</a><span class="d">05 / 20</span></div>
+      </div>
+    </div>
+
+    <!-- 分组 4 -->
+    <div class="cat-block">
+      <div class="cat-meta">
+        <span class="label">读书与杂谈</span>
+        <h3>读书与杂谈</h3>
+        <p>技术之外的一些阅读笔记与随想。</p>
+        <div class="stat">共 <b>4</b> 篇 · 最近更新 5 月 25 日</div>
+        <a class="view" href="#">查看全部 →</a>
+      </div>
+      <div class="cat-list">
+        <div class="row"><a href="#">《计算机程序的构造和解释》重读札记</a><span class="d">05 / 25</span></div>
+        <div class="row"><a href="#">关于「学得快」这件事</a><span class="d">05 / 03</span></div>
+      </div>
+    </div>
+
+    <!-- 标签云 -->
+    <div class="tags-section">
+      <div class="section-label">按标签浏览</div>
+      <div class="cloud">
+        <a class="big" href="#">DP <span class="n">12</span></a>
+        <a href="#">图论 <span class="n">9</span></a>
+        <a class="big" href="#">C++ <span class="n">15</span></a>
+        <a href="#">位运算 <span class="n">5</span></a>
+        <a href="#">最短路 <span class="n">4</span></a>
+        <a href="#">部署 <span class="n">6</span></a>
+        <a href="#">Docker <span class="n">3</span></a>
+        <a href="#">Nginx <span class="n">2</span></a>
+        <a href="#">平衡树 <span class="n">4</span></a>
+        <a href="#">字符串 <span class="n">3</span></a>
+        <a href="#">数论 <span class="n">3</span></a>
+        <a href="#">随笔 <span class="n">4</span></a>
+      </div>
+    </div>
+  </div>
+
+  <footer><div class="wrap">LeuBlog · 由 Next.js 与衬线字体驱动 · © 2026</div></footer>
+</body>
+</html>

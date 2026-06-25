@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog 后台 · 全部页面</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" id="katex"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f4f5f7;--panel:#fff;--line:#e3e6ea;--line2:#eef0f3;
+    --ink:#1f2328;--soft:#5b6471;--muted:#8b94a1;
+    --accent:#b5342b;--accent-soft:#fbeceb;--ok:#1f8a4c;--ok-bg:#e8f5ee;--warn:#b7791f;--warn-bg:#fdf4e3;--blue:#2563a8;
+    --sans:-apple-system,"Segoe UI",Roboto,"Microsoft YaHei","PingFang SC",sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Consolas","Liberation Mono",monospace;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+  }
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  .app{display:grid;grid-template-columns:216px 1fr;min-height:100vh}
+
+  /* 侧栏 */
+  .side{background:#1d2128;color:#c7cdd6;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .side .logo{padding:16px 18px;font-size:16px;font-weight:700;color:#fff;border-bottom:1px solid #2c3139;display:flex;align-items:center;gap:8px}
+  .side .logo .dot{width:9px;height:9px;background:var(--accent);border-radius:2px;transform:rotate(45deg)}
+  .side .scroll{overflow:auto;flex:1}
+  .side .grp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6c7480;padding:15px 18px 5px}
+  .side nav a{display:flex;align-items:center;gap:10px;padding:9px 18px;color:#c7cdd6;font-size:13.5px;border-left:3px solid transparent;cursor:pointer}
+  .side nav a:hover{background:#262b33;color:#fff}
+  .side nav a.on{background:#262b33;color:#fff;border-left-color:var(--accent);font-weight:600}
+  .side nav a .ic{width:16px;text-align:center;opacity:.85}
+  .side nav a .badge{margin-left:auto;font-size:11px;background:#343a44;color:#aeb6c1;padding:0 7px;border-radius:9px}
+  .side nav a.on .badge{background:var(--accent);color:#fff}
+  .side .me{border-top:1px solid #2c3139;padding:12px 18px;display:flex;align-items:center;gap:10px}
+  .side .me .av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .side .me .nm{font-size:13px;color:#fff}.side .me .ro{font-size:11px;color:#8b94a1}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .top{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:5}
+  .top h1{font-size:17px;font-weight:700}
+  .top .crumb{font-size:12px;color:var(--muted)}
+  .top .sp{margin-left:auto}
+  .btn{font-family:inherit;font-size:13px;padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+  .btn:hover{border-color:#c7ccd3}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{background:#9d2b23}
+  .btn.sm{padding:4px 10px;font-size:12px}
+  .btn.danger{color:var(--accent);border-color:#edc9c6}.btn.danger:hover{background:var(--accent-soft)}
+  .content{padding:22px 24px;display:flex;flex-direction:column;gap:20px}
+  .view{display:none}.view.active{display:flex;flex-direction:column;gap:20px}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+  .panel .h{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .panel .h h2{font-size:14px;font-weight:700}
+  .panel .h .more{margin-left:auto;font-size:12.5px;color:var(--accent)}
+  .panel .h select,.panel .h .right{margin-left:auto}
+  .panel .b{padding:16px}
+
+  /* 统计卡 */
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .card .k{font-size:12.5px;color:var(--soft)}
+  .card .v{font-size:26px;font-weight:700;margin-top:6px;letter-spacing:-.02em}
+  .card .sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .card .sub .up{color:var(--ok)}
+  .pill{font-size:11px;padding:1px 8px;border-radius:10px;font-weight:600;display:inline-block}
+  .pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.warn{background:var(--warn-bg);color:var(--warn)}
+  .pill.muted{background:#eef0f3;color:var(--soft)}.pill.blue{background:#e7f0fa;color:var(--blue)}
+
+  .row2{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+
+  .chart{display:flex;align-items:flex-end;gap:6px;height:170px;padding-top:8px}
+  .chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .chart .bar{width:100%;max-width:22px;background:var(--accent);border-radius:3px 3px 0 0;opacity:.85}
+  .chart .col:hover .bar{opacity:1}.chart .bar.today{background:#e0792f}
+  .chart .lab{font-size:10px;color:var(--muted)}
+  .chartfoot{display:flex;justify-content:space-between;font-size:12px;color:var(--soft);margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .chartfoot b{color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 16px;border-bottom:1px solid var(--line)}
+  td{padding:9px 16px;border-bottom:1px solid var(--line2);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfc}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--soft)}
+  .rank{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;font-size:12px;font-weight:700;background:#eef0f3;color:var(--soft)}
+  .rank.top{background:var(--accent);color:#fff}
+  .ttl{font-weight:600;color:var(--ink)}
+  .sub2{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .tag{font-size:11px;color:var(--soft);background:#f0f2f5;padding:1px 7px;border-radius:4px;display:inline-block}
+  .acts{display:flex;gap:6px;justify-content:flex-end}
+  .lk{color:var(--blue);cursor:pointer;font-size:12.5px}.lk.del{color:var(--accent)}
+
+  .feed{list-style:none}
+  .feed li{display:flex;gap:11px;padding:11px 16px;border-bottom:1px solid var(--line2)}
+  .feed li:last-child{border-bottom:none}
+  .feed .ic{width:26px;height:26px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .feed .ic.pub{background:var(--ok-bg);color:var(--ok)}.feed .ic.edit{background:#eef0f3;color:var(--soft)}
+  .feed .ic.ann{background:var(--warn-bg);color:var(--warn)}.feed .ic.user{background:var(--accent-soft);color:var(--accent)}
+  .feed .tx{font-size:13px}.feed .tx b{font-weight:600}.feed .tm{font-size:11.5px;color:var(--muted);margin-top:1px}
+
+  /* 工具栏/筛选 */
+  .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .toolbar input[type=text],.toolbar select,.fld input,.fld select,.fld textarea{font-family:inherit;font-size:13px;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 10px;background:#fff}
+  .toolbar input[type=text]{min-width:240px}
+  .toolbar .sp{margin-left:auto}
+  .status{font-size:12px;font-weight:600;padding:2px 9px;border-radius:10px}
+  .status.pub{background:var(--ok-bg);color:var(--ok)}.status.draft{background:#eef0f3;color:var(--soft)}
+
+  /* 表单 */
+  .fld{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .fld label{font-size:12.5px;color:var(--soft);font-weight:600}
+  .fld .hint{font-size:11.5px;color:var(--muted)}
+  .fld input,.fld select,.fld textarea{width:100%}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{font-family:inherit;font-size:12.5px;padding:6px 14px;border:none;background:#fff;color:var(--soft);cursor:pointer}
+  .seg button.on{background:var(--accent);color:#fff;font-weight:600}
+  .switch{width:38px;height:22px;border-radius:11px;background:#cfd5dc;position:relative;cursor:pointer;display:inline-block;flex:none}
+  .switch.on{background:var(--ok)}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+  .switch.on::after{left:18px}
+
+  /* 编辑器 */
+  .ed-head{display:grid;grid-template-columns:1fr;gap:0}
+  .ed-titlerow{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .ed-titlerow input.title{flex:1;font-size:20px;font-weight:700;border:none;outline:none;color:var(--ink)}
+  .ed-meta{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line);background:#fafbfc}
+  .ed-meta .m{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--soft)}
+  .ed-meta select,.ed-meta input{font-family:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+  .ed-tools{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .ed-tools button{font-family:inherit;font-size:13px;width:32px;height:30px;border:1px solid var(--line);background:#fff;border-radius:5px;cursor:pointer;color:var(--soft)}
+  .ed-tools button:hover{border-color:var(--accent);color:var(--accent)}
+  .ed-tools .gap{width:8px}
+  .editor{display:grid;grid-template-columns:1fr 1fr}
+  .ed-src{border:none;border-right:1px solid var(--line);resize:none;padding:18px;font-family:var(--mono);font-size:13.5px;line-height:1.7;color:#2b2f36;min-height:520px;outline:none}
+  .ed-pv{padding:22px 26px;min-height:520px;max-height:660px;overflow:auto;font-family:var(--serif);font-size:16px;line-height:1.8;color:#2c2620}
+  .ed-paneh{display:grid;grid-template-columns:1fr 1fr;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .ed-paneh div{padding:8px 16px;border-bottom:1px solid var(--line)}
+  .ed-paneh div:first-child{border-right:1px solid var(--line)}
+  /* 预览排版 */
+  .ed-pv h1{font-size:30px;margin:0 0 12px}.ed-pv h2{font-size:23px;margin:26px 0 12px;border-bottom:1px solid #e7e0d2;padding-bottom:6px}
+  .ed-pv h3{font-size:19px;margin:20px 0 10px}.ed-pv p{margin:0 0 14px}
+  .ed-pv ul,.ed-pv ol{margin:0 0 14px;padding-left:1.4em}.ed-pv li{margin:5px 0}
+  .ed-pv strong{color:var(--accent)}
+  .ed-pv code{font-family:var(--mono);font-size:.85em;background:#f3eee2;border:1px solid #e3dccb;padding:1px 5px;border-radius:3px;color:#9c2b22}
+  .ed-pv blockquote{margin:16px 0;padding:6px 18px;border-left:3px solid var(--accent);background:#f6efe2;color:#544e44;font-style:italic}
+  .ed-pv .cb{margin:16px 0;border-radius:5px;overflow:hidden;background:#272320}
+  .ed-pv .cb .cbbar{display:flex;justify-content:space-between;padding:7px 12px;background:#1f1b18;color:#a59a86;font-family:var(--mono);font-size:11px;text-transform:uppercase}
+  .ed-pv .cb .cbcopy{background:transparent;border:1px solid #4a4239;color:#e0d6c5;border-radius:3px;font-size:11px;padding:2px 9px;cursor:pointer}
+  .ed-pv .cb pre{margin:0;padding:14px 16px;overflow:auto}.ed-pv .cb code{background:none;border:none;color:#e9e2d4;padding:0;font-size:13px}
+  .ed-pv img{max-width:100%;border:1px solid var(--line)}
+
+  /* 分类法三栏 */
+  .tax{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+  .tax .col{border-right:1px solid var(--line);min-height:420px}
+  .tax .col:last-child{border-right:none}
+  .tax .colh{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line);font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+  .tax .colh .add{margin-left:auto;color:var(--accent);cursor:pointer;font-size:18px;line-height:1}
+  .tax .it{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:13.5px}
+  .tax .it:hover{background:#fafbfc}.tax .it.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .tax .it .drag{color:#c2c8d0;cursor:grab}.tax .it .cnt{margin-left:auto;font-size:11px;color:var(--muted);background:#eef0f3;padding:0 7px;border-radius:9px}
+  .tax .it.on .cnt{background:var(--accent);color:#fff}
+  .tax .empty{padding:18px 14px;color:var(--muted);font-size:12.5px}
+
+  /* 媒体 */
+  .media{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .media .m{border:1px solid var(--line);border-radius:7px;overflow:hidden;background:#fff}
+  .media .m .ph{height:88px;background:linear-gradient(135deg,#eef0f3,#dfe3e8);display:flex;align-items:center;justify-content:center;color:#aeb6c1;font-size:22px}
+  .media .m .mi{padding:7px 9px}.media .m .nm{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .media .m .sz{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;margin-top:3px}
+  .drop{border:2px dashed #cfd5dc;border-radius:8px;padding:22px;text-align:center;color:var(--muted);font-size:13px;background:#fafbfc}
+  .usebar{height:8px;background:#eef0f3;border-radius:4px;overflow:hidden;margin-top:6px}.usebar i{display:block;height:100%;width:9.2%;background:var(--accent)}
+
+  .colorrow{display:flex;align-items:center;gap:12px}
+  .swatch{width:34px;height:34px;border-radius:7px;border:1px solid var(--line)}
+  .note{background:var(--warn-bg);border:1px solid #f0e0bf;color:#8a6312;font-size:12.5px;padding:9px 12px;border-radius:7px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><span class="dot"></span> LeuBlog 后台</div>
+    <div class="scroll">
+      <div class="grp">概览</div>
+      <nav><a class="on" data-view="dash"><span class="ic">▦</span> 仪表盘</a></nav>
+      <div class="grp">内容</div>
+      <nav>
+        <a data-view="posts"><span class="ic">✎</span> 文章 <span class="badge">42</span></a>
+        <a data-view="editor"><span class="ic">＋</span> 写文章</a>
+        <a data-view="taxonomy"><span class="ic">⌗</span> 分类法</a>
+        <a data-view="media"><span class="ic">◰</span> 媒体库</a>
+      </nav>
+      <div class="grp">运营</div>
+      <nav>
+        <a data-view="ann"><span class="ic">!</span> 公告 <span class="badge">1</span></a>
+        <a data-view="portals"><span class="ic">↗</span> 传送门</a>
+      </nav>
+      <div class="grp">系统</div>
+      <nav>
+        <a data-view="users"><span class="ic">☺</span> 用户 <span class="badge">3</span></a>
+        <a data-view="settings"><span class="ic">⚙</span> 设置</a>
+      </nav>
+    </div>
+    <div class="me"><div class="av">L</div><div><div class="nm">Leu</div><div class="ro">管理员</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <h1 id="ptitle">仪表盘</h1><span class="crumb" id="crumb">后台 / 仪表盘</span>
+      <span class="sp"></span>
+      <button class="btn">查看站点 ↗</button>
+      <button class="btn primary" data-view="editor">＋ 写文章</button>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== 仪表盘 ===== -->
+      <section class="view active" id="v-dash">
+        <div class="cards">
+          <div class="card"><div class="k">文章总数</div><div class="v">42</div><div class="sub">已发布 38 · 草稿 4</div></div>
+          <div class="card"><div class="k">总阅读量</div><div class="v">28,470</div><div class="sub"><span class="up">▲ 1,204</span> 近 7 日</div></div>
+          <div class="card"><div class="k">今日访问</div><div class="v">312</div><div class="sub"><span class="up">▲ 8.6%</span> 较昨日</div></div>
+          <div class="card"><div class="k">生效公告</div><div class="v">1 <span class="pill warn">展示中</span></div><div class="sub">06/24 发布 · 永久</div></div>
+          <div class="card"><div class="k">编者 / 分类</div><div class="v">3</div><div class="sub">4 分组 · 23 标签 · 5 传送门</div></div>
+        </div>
+        <div class="row2">
+          <div class="panel">
+            <div class="h"><h2>访问量趋势</h2><select><option>近 14 天</option><option>近 30 天</option><option>近 90 天</option></select></div>
+            <div class="b"><div class="chart" id="chart"></div>
+              <div class="chartfoot"><span>近 14 天合计 <b>4,021</b> 次</span><span>日均 <b>287</b> · 峰值 <b>418</b>（06/20）</span></div></div>
+          </div>
+          <div class="panel"><div class="h"><h2>最近活动</h2><a class="more" href="#">全部</a></div>
+            <ul class="feed">
+              <li><div class="ic pub">✓</div><div><div class="tx"><b>Leu</b> 发布《状态压缩 DP 的本质》</div><div class="tm">2 小时前</div></div></li>
+              <li><div class="ic ann">!</div><div><div class="tx"><b>Leu</b> 发布公告「站点已迁移」</div><div class="tm">5 小时前</div></div></li>
+              <li><div class="ic edit">✎</div><div><div class="tx"><b>陈编</b> 编辑《线段树到区间历史最值》</div><div class="tm">昨天 18:42</div></div></li>
+              <li><div class="ic pub">✓</div><div><div class="tx"><b>陈编</b> 发布《KMP 与 Z 函数》</div><div class="tm">昨天 10:05</div></div></li>
+              <li><div class="ic user">☺</div><div><div class="tx">新增编者 <b>王同学</b></div><div class="tm">06/22</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="panel"><div class="h"><h2>热门文章排行</h2><a class="more" href="#">查看全部</a></div>
+            <table><thead><tr><th style="width:46px">#</th><th>标题</th><th>分组</th><th>作者</th><th class="num">阅读</th></tr></thead>
+              <tbody>
+                <tr><td><span class="rank top">1</span></td><td class="ttl">最短路三连：Dijkstra、Bellman-Ford 与 SPFA</td><td><span class="tag">算法</span></td><td>Leu</td><td class="num">1,507</td></tr>
+                <tr><td><span class="rank top">2</span></td><td class="ttl">从背包问题理解状态压缩 DP 的本质</td><td><span class="tag">算法</span></td><td>Leu</td><td class="num">1,284</td></tr>
+                <tr><td><span class="rank top">3</span></td><td class="ttl">字符串匹配：KMP 与 Z 函数的统一视角</td><td><span class="tag">算法</span></td><td>陈编</td><td class="num">1,021</td></tr>
+                <tr><td><span class="rank">4</span></td><td class="ttl">在 2 核 2G 小服务器上优雅地部署全栈应用</td><td><span class="tag">系统与工具</span></td><td>Leu</td><td class="num">932</td></tr>
+                <tr><td><span class="rank">5</span></td><td class="ttl">线段树从入门到区间历史最值</td><td><span class="tag">算法</span></td><td>陈编</td><td class="num">876</td></tr>
+              </tbody></table>
+          </div>
+          <div class="panel"><div class="h"><h2>需要关注</h2></div>
+            <ul class="feed">
+              <li><div class="ic edit">▤</div><div><div class="tx"><b>4 篇草稿</b>未发布</div><div class="tm">最早一篇停留 6 天</div></div></li>
+              <li><div class="ic ann">!</div><div><div class="tx">当前公告设为<b>永久展示</b></div><div class="tm">确认是否仍需展示</div></div></li>
+              <li><div class="ic user">☺</div><div><div class="tx"><b>王同学</b> 尚无已发布文章</div><div class="tm">06/22 加入</div></div></li>
+              <li><div class="ic edit">◰</div><div><div class="tx">媒体库占用 <b>184 MB</b> / 2 GB</div><div class="tm">磁盘充足</div></div></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 文章管理 ===== -->
+      <section class="view" id="v-posts">
+        <div class="panel">
+          <div class="h" style="gap:10px">
+            <div class="toolbar" style="flex:1">
+              <input type="text" placeholder="搜索标题 / 内容…">
+              <select><option>全部状态</option><option>已发布</option><option>草稿</option></select>
+              <select><option>全部分组</option><option>算法</option><option>数据结构</option><option>系统与工具</option><option>读书与杂谈</option></select>
+              <select><option>全部作者</option><option>Leu</option><option>陈编</option><option>王同学</option></select>
+              <select><option>最近更新</option><option>发布时间</option><option>阅读量</option></select>
+              <span class="sp"></span>
+              <button class="btn primary" data-view="editor">＋ 写文章</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th style="width:30px"><input type="checkbox"></th><th>标题</th><th>分组 / 标签</th><th>作者</th><th>状态</th><th class="num">阅读</th><th>更新时间</th><th style="width:150px"></th></tr></thead>
+            <tbody>
+              <tr><td><input type="checkbox"></td><td><div class="ttl">从背包问题理解状态压缩 DP 的本质</div><div class="sub2">/posts/zhuangtai-yasuo-dp</div></td><td><span class="tag">算法</span> <span class="tag">DP</span> <span class="tag">位运算</span></td><td>Leu</td><td><span class="status pub">已发布</span></td><td class="num">1,284</td><td>06-22 14:30</td><td class="acts"><span class="lk">编辑</span><span class="lk">预览</span><span class="lk del">删除</span></td></tr>
+              <tr><td><input type="checkbox"></td><td><div class="ttl">二叉树入门：从定义到遍历</div><div class="sub2">/posts/binary-tree-intro</div></td><td><span class="tag">算法</span> <span class="tag">二叉树</span></td><td>Leu</td><td><span class="status pub">已发布</span></td><td class="num">1,284</td><td>06-24 09:10</td><td class="acts"><span class="lk">编辑</span><span class="lk">预览</span><span class="lk del">删除</span></td></tr>
+              <tr><td><input type="checkbox"></td><td><div class="ttl">可持久化数据结构初探</div><div class="sub2">草稿 · 未设置链接</div></td><td><span class="tag">数据结构</span></td><td>陈编</td><td><span class="status draft">草稿</span></td><td class="num">—</td><td>06-23 21:02</td><td class="acts"><span class="lk">编辑</span><span class="lk">预览</span><span class="lk del">删除</span></td></tr>
+              <tr><td><input type="checkbox"></td><td><div class="ttl">最短路三连：Dijkstra、Bellman-Ford 与 SPFA</div><div class="sub2">/posts/shortest-path-trio</div></td><td><span class="tag">算法</span> <span class="tag">最短路</span></td><td>Leu</td><td><span class="status pub">已发布</span></td><td class="num">1,507</td><td>06-14 11:20</td><td class="acts"><span class="lk">编辑</span><span class="lk">预览</span><span class="lk del">删除</span></td></tr>
+              <tr><td><input type="checkbox"></td><td><div class="ttl">网络流建模技巧</div><div class="sub2">草稿 · 未设置链接</div></td><td><span class="tag">算法</span></td><td>王同学</td><td><span class="status draft">草稿</span></td><td class="num">—</td><td>06-12 16:48</td><td class="acts"><span class="lk">编辑</span><span class="lk">预览</span><span class="lk del">删除</span></td></tr>
+            </tbody>
+          </table>
+          <div class="h" style="border-top:1px solid var(--line);border-bottom:none;color:var(--soft);font-size:12.5px">
+            共 42 篇 · 第 1 / 9 页 <span class="sp"></span>
+            <button class="btn sm">上一页</button><button class="btn sm">下一页</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 编辑器 ===== -->
+      <section class="view" id="v-editor">
+        <div class="panel">
+          <div class="ed-titlerow">
+            <input class="title" value="二叉树入门：从定义到遍历">
+            <span class="status pub">已发布</span>
+          </div>
+          <div class="ed-meta">
+            <div class="m">链接 <input value="binary-tree-intro" style="width:170px"></div>
+            <div class="m">分组 <select><option>算法</option><option>数据结构</option><option>系统与工具</option></select></div>
+            <div class="m">标签 <input value="二叉树, 数据结构, C++" style="width:200px"></div>
+            <div class="m">状态 <div class="seg"><button>草稿</button><button class="on">发布</button></div></div>
+            <span class="sp" style="margin-left:auto"></span>
+            <button class="btn sm">封面图…</button><button class="btn sm">保存草稿</button><button class="btn primary sm">更新发布</button>
+          </div>
+          <div class="ed-tools">
+            <button title="加粗" data-md="bold"><b>B</b></button>
+            <button title="斜体" data-md="italic"><i>I</i></button>
+            <button title="标题" data-md="h2">H</button>
+            <span class="gap"></span>
+            <button title="链接" data-md="link">🔗</button>
+            <button title="图片" data-md="img">🖼</button>
+            <button title="行内代码" data-md="code">&lt;&gt;</button>
+            <button title="代码块" data-md="codeblock">▦</button>
+            <button title="公式" data-md="math">∑</button>
+            <button title="引用" data-md="quote">❝</button>
+            <button title="列表" data-md="list">≔</button>
+            <span class="gap"></span>
+            <button title="上传图片" data-md="upload">⬆</button>
+          </div>
+          <div class="ed-paneh"><div>Markdown 源</div><div>实时预览</div></div>
+          <div class="editor">
+            <textarea class="ed-src" id="src" spellcheck="false"></textarea>
+            <div class="ed-pv" id="pv"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 分类法 ===== -->
+      <section class="view" id="v-taxonomy">
+        <div class="note">三级层次：<b>文章分组 → 标签组 → 标签</b>。在左列选择分组，中列管理其标签组，右列管理标签组下的标签；可拖拽排序。</div>
+        <div class="panel">
+          <div class="tax">
+            <div class="col">
+              <div class="colh">文章分组 <span class="add" title="新增分组">＋</span></div>
+              <div class="it on"><span class="drag">⋮⋮</span> 算法 <span class="cnt">18</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 数据结构 <span class="cnt">11</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 系统与工具 <span class="cnt">7</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 读书与杂谈 <span class="cnt">4</span></div>
+            </div>
+            <div class="col">
+              <div class="colh">「算法」的标签组 <span class="add" title="新增标签组">＋</span></div>
+              <div class="it on"><span class="drag">⋮⋮</span> 数据结构 <span class="cnt">5</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 动态规划 <span class="cnt">5</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 图论 <span class="cnt">4</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 字符串 <span class="cnt">3</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 数论 <span class="cnt">3</span></div>
+            </div>
+            <div class="col">
+              <div class="colh">「数据结构」的标签 <span class="add" title="新增标签">＋</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 二叉树 <span class="cnt">5</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 平衡树 <span class="cnt">4</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 线段树 <span class="cnt">3</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 并查集 <span class="cnt">2</span></div>
+              <div class="it"><span class="drag">⋮⋮</span> 单调栈 <span class="cnt">2</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 媒体库 ===== -->
+      <section class="view" id="v-media">
+        <div class="panel"><div class="h"><h2>媒体库</h2>
+          <span class="right" style="margin-left:auto;font-size:12.5px;color:var(--soft)">已用 184 MB / 2 GB</span></div>
+          <div class="b">
+            <div class="drop">把图片拖到这里上传，或 <span class="lk">点击选择文件</span>（支持 JPG / PNG / WebP / GIF，单张 ≤ 5 MB）
+              <div class="usebar"><i></i></div>
+            </div>
+            <div class="media" style="margin-top:16px">
+              <div class="m"><div class="ph">🖼</div><div class="mi"><div class="nm">bst-diagram.svg</div><div class="sz"><span>12 KB</span><span class="lk">复制</span></div></div></div>
+              <div class="m"><div class="ph">🖼</div><div class="mi"><div class="nm">dp-table.png</div><div class="sz"><span>86 KB</span><span class="lk">复制</span></div></div></div>
+              <div class="m"><div class="ph">🖼</div><div class="mi"><div class="nm">graph-sssp.png</div><div class="sz"><span>120 KB</span><span class="lk">复制</span></div></div></div>
+              <div class="m"><div class="ph">🖼</div><div class="mi"><div class="nm">cover-server.jpg</div><div class="sz"><span>240 KB</span><span class="lk">复制</span></div></div></div>
+              <div class="m"><div class="ph">🖼</div><div class="mi"><div class="nm">segment-tree.png</div><div class="sz"><span>64 KB</span><span class="lk">复制</span></div></div></div>
+              <div class="m"><div class="ph">🖼</div><div class="mi"><div class="nm">kmp-next.png</div><div class="sz"><span>52 KB</span><span class="lk">复制</span></div></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 公告 ===== -->
+      <section class="view" id="v-ann">
+        <div class="row2">
+          <div class="panel"><div class="h"><h2>公告列表</h2></div>
+            <table><thead><tr><th>内容</th><th>级别</th><th>时效</th><th>状态</th><th style="width:120px"></th></tr></thead>
+              <tbody>
+                <tr><td class="ttl">站点已迁移至新服务器，如遇访问异常请稍后重试。</td><td><span class="pill warn">提示</span></td><td>永久</td><td><span class="status pub">展示中</span></td><td class="acts"><span class="lk">编辑</span><span class="lk del">下线</span></td></tr>
+                <tr><td>春节期间更新放缓，祝大家新年快乐。</td><td><span class="pill blue">通知</span></td><td>02/08 – 02/18</td><td><span class="status draft">已过期</span></td><td class="acts"><span class="lk">编辑</span><span class="lk del">删除</span></td></tr>
+              </tbody></table>
+          </div>
+          <div class="panel"><div class="h"><h2>新建 / 编辑公告</h2></div>
+            <div class="b">
+              <div class="fld"><label>内容</label><textarea rows="3" placeholder="一句话公告，支持简单 Markdown">站点已迁移至新服务器，如遇访问异常请稍后重试。</textarea></div>
+              <div class="grid2">
+                <div class="fld"><label>级别</label><div class="seg"><button class="on">提示</button><button>通知</button></div></div>
+                <div class="fld"><label>展示</label><div style="display:flex;align-items:center;gap:8px"><span class="switch on"></span><span class="hint">当前展示中</span></div></div>
+              </div>
+              <div class="grid2">
+                <div class="fld"><label>开始时间（可空）</label><input type="text" placeholder="留空=立即"></div>
+                <div class="fld"><label>结束时间（可空）</label><input type="text" placeholder="留空=永久"></div>
+              </div>
+              <button class="btn primary">保存公告</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 传送门 ===== -->
+      <section class="view" id="v-portals">
+        <div class="panel"><div class="h"><h2>传送门 / 外链</h2><button class="btn primary right">＋ 新增链接</button></div>
+          <table><thead><tr><th style="width:30px"></th><th>标题 / 描述</th><th>链接</th><th>分组</th><th>展示位置</th><th>显示</th><th style="width:110px"></th></tr></thead>
+            <tbody>
+              <tr><td><span class="drag" style="color:#c2c8d0">⋮⋮</span></td><td><div class="ttl">Leu 的实验室</div><div class="sub2">代码与小工具合集</div></td><td class="sub2">labs.leu.dev</td><td><span class="tag">我的站点</span></td><td><span class="pill muted">侧栏</span></td><td><span class="switch on"></span></td><td class="acts"><span class="lk">编辑</span><span class="lk del">删除</span></td></tr>
+              <tr><td><span class="drag" style="color:#c2c8d0">⋮⋮</span></td><td><div class="ttl">某同学的博客</div><div class="sub2">系统与编译方向</div></td><td class="sub2">friend.example.com</td><td><span class="tag">友情链接</span></td><td><span class="pill muted">侧栏</span></td><td><span class="switch on"></span></td><td class="acts"><span class="lk">编辑</span><span class="lk del">删除</span></td></tr>
+              <tr><td><span class="drag" style="color:#c2c8d0">⋮⋮</span></td><td><div class="ttl">算法竞赛笔记</div><div class="sub2">题解与模板</div></td><td class="sub2">oi-notes.example.com</td><td><span class="tag">友情链接</span></td><td><span class="pill muted">页脚</span></td><td><span class="switch"></span></td><td class="acts"><span class="lk">编辑</span><span class="lk del">删除</span></td></tr>
+            </tbody></table>
+        </div>
+      </section>
+
+      <!-- ===== 用户 ===== -->
+      <section class="view" id="v-users">
+        <div class="note">系统**仅允许一个管理员**。管理员可创建/禁用编者、重置密码；编者只能管理自己的文章。</div>
+        <div class="panel"><div class="h"><h2>用户</h2><button class="btn primary right">＋ 新建编者</button></div>
+          <table><thead><tr><th>用户</th><th>角色</th><th>邮箱</th><th class="num">文章</th><th>状态</th><th>加入时间</th><th style="width:200px"></th></tr></thead>
+            <tbody>
+              <tr><td><div class="ttl">Leu</div></td><td><span class="pill" style="background:var(--accent-soft);color:var(--accent)">管理员</span></td><td class="sub2">leu@example.com</td><td class="num">31</td><td><span class="status pub">正常</span></td><td>2024-09-02</td><td class="acts"><span class="lk">编辑资料</span><span class="lk">改密码</span></td></tr>
+              <tr><td><div class="ttl">陈编</div></td><td><span class="pill muted">编者</span></td><td class="sub2">chen@example.com</td><td class="num">8</td><td><span class="status pub">正常</span></td><td>2025-03-11</td><td class="acts"><span class="lk">重置密码</span><span class="lk del">禁用</span></td></tr>
+              <tr><td><div class="ttl">王同学</div></td><td><span class="pill muted">编者</span></td><td class="sub2">wang@example.com</td><td class="num">0</td><td><span class="status draft">待激活</span></td><td>2026-06-22</td><td class="acts"><span class="lk">重发邀请</span><span class="lk del">删除</span></td></tr>
+            </tbody></table>
+        </div>
+      </section>
+
+      <!-- ===== 设置 ===== -->
+      <section class="view" id="v-settings">
+        <div class="row2">
+          <div class="panel"><div class="h"><h2>站点信息（报头三行）</h2></div><div class="b">
+            <div class="fld"><label>上标 Kicker</label><input value="Algorithms · Computer Science · Notes"></div>
+            <div class="fld"><label>站点标题</label><input value="LeuBlog"></div>
+            <div class="fld"><label>副标题</label><input value="算法学习记录 与 计算机技术教程"></div>
+            <div class="fld"><label>首页文章数</label><input value="8" style="width:90px"></div>
+            <button class="btn primary">保存</button>
+          </div></div>
+          <div class="panel"><div class="h"><h2>外观</h2></div><div class="b">
+            <div class="fld"><label>强调色</label><div class="colorrow"><span class="swatch" style="background:#9c2b22"></span><input value="#9c2b22" style="width:120px"><span class="hint">读者可在浏览器本地覆盖</span></div></div>
+            <div class="fld"><label>背景纸色</label><div class="colorrow"><span class="swatch" style="background:#faf7f1"></span><input value="#faf7f1" style="width:120px"></div></div>
+            <div class="fld"><label>传送门默认展示位置</label><div class="seg"><button class="on">侧栏</button><button>页脚</button></div></div>
+            <button class="btn primary">保存</button>
+          </div></div>
+        </div>
+        <div class="row2">
+          <div class="panel"><div class="h"><h2>关于页内容（Markdown）</h2></div><div class="b">
+            <div class="fld"><textarea rows="6">## 关于我
+我是 **Leu**，一名热爱算法与系统的开发者……
+
+## 关于本站
+主要写算法学习记录与计算机技术教程。</textarea><span class="hint">前台「关于」页将渲染这段 Markdown。</span></div>
+            <button class="btn primary">保存</button>
+          </div></div>
+          <div class="panel"><div class="h"><h2>联系方式 / Colophon</h2></div><div class="b">
+            <div class="grid2">
+              <div class="fld"><label>Email</label><input value="leu@example.com"></div>
+              <div class="fld"><label>GitHub</label><input value="@leu"></div>
+            </div>
+            <div class="fld"><label>RSS</label><input value="/rss.xml"></div>
+            <div class="fld"><label>Colophon（页脚说明）</label><input value="由 Next.js 驱动，SQLite 存储，部署在 2 核 2G 小服务器。"></div>
+            <button class="btn primary">保存</button>
+          </div></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // 视图切换
+  const titles={dash:'仪表盘',posts:'文章管理',editor:'写文章 / 编辑',taxonomy:'分类法',media:'媒体库',ann:'公告',portals:'传送门',users:'用户',settings:'设置'};
+  function show(v){
+    document.querySelectorAll('.view').forEach(e=>e.classList.toggle('active',e.id==='v-'+v));
+    document.querySelectorAll('.side nav a').forEach(a=>a.classList.toggle('on',a.dataset.view===v));
+    document.getElementById('ptitle').textContent=titles[v]||'';
+    document.getElementById('crumb').textContent='后台 / '+(titles[v]||'');
+    window.scrollTo(0,0);
+    if(v==='editor')renderPreview();
+  }
+  document.querySelectorAll('[data-view]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();show(a.dataset.view);}));
+
+  // 开关切换
+  document.querySelectorAll('.switch').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+  document.querySelectorAll('.seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');})));
+  // 分类法选中
+  document.querySelectorAll('.tax .col').forEach(col=>col.querySelectorAll('.it').forEach(it=>it.addEventListener('click',()=>{col.querySelectorAll('.it').forEach(x=>x.classList.remove('on'));it.classList.add('on');})));
+
+  // 仪表盘柱状图
+  (function(){
+    const days=["11","12","13","14","15","16","17","18","19","20","21","22","23","今日"];
+    const vals=[262,248,300,221,284,256,231,290,355,418,372,301,289,312];const max=Math.max(...vals);
+    const el=document.getElementById("chart");
+    if(el)el.innerHTML=days.map((d,i)=>{const h=Math.round(vals[i]/max*150)+8;return `<div class="col" title="${vals[i]} 次"><div class="bar${i===days.length-1?' today':''}" style="height:${h}px"></div><div class="lab">${d}</div></div>`;}).join("");
+  })();
+
+  // ===== 编辑器实时预览 =====
+  const sample=`# 二叉树入门：从定义到遍历
+
+**二叉树** 是几乎所有高级数据结构的地基——堆、平衡树、线段树都是它的变体。
+
+## 基本性质
+
+设高度为 $h$（只有根时 $h=1$），则一棵二叉树最多包含的节点数为：
+
+$$ n_{\\max} = \\sum_{i=1}^{h} 2^{\\,i-1} = 2^{h} - 1 $$
+
+只要树高维持在 $O(\\log n)$，查找/插入/删除就能做到 $O(\\log n)$。
+
+> 一棵二叉树要么为空，要么由根节点和两棵子树组成——典型的递归定义。
+
+## 表示
+
+最直接的方式是链式结构：
+
+\`\`\`cpp
+struct Node {
+    int val;
+    Node *left, *right;
+    Node(int v) : val(v), left(nullptr), right(nullptr) {}
+};
+\`\`\`
+
+常见特殊形态：
+
+- 满二叉树：节点数恰为 $2^h-1$
+- 完全二叉树：可用数组隐式存储
+- 平衡二叉树：左右子树高度差有界`;
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function inline(s){
+    s=esc(s);
+    s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+    s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+    s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+    s=s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img alt="$1" src="$2">');
+    s=s.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+    return s;
+  }
+  function mdToHtml(src){
+    const L=src.replace(/\r/g,'').split('\n');let h='',i=0;
+    const isBlock=l=>/^(#{1,4}\s|>|```|(\-|\*)\s|\d+\.\s)/.test(l);
+    while(i<L.length){let l=L[i];
+      if(/^```/.test(l)){const lang=l.slice(3).trim()||'code';i++;let c='';while(i<L.length&&!/^```/.test(L[i])){c+=L[i]+'\n';i++;}i++;
+        h+=`<div class="cb"><div class="cbbar">${lang}<button class="cbcopy">复制</button></div><pre><code>${esc(c.replace(/\n$/,''))}</code></pre></div>`;continue;}
+      if(/^#{1,4}\s/.test(l)){const lv=l.match(/^#+/)[0].length;h+=`<h${lv}>${inline(l.replace(/^#+\s/,''))}</h${lv}>`;i++;continue;}
+      if(/^>\s?/.test(l)){let q='';while(i<L.length&&/^>\s?/.test(L[i])){q+=L[i].replace(/^>\s?/,'')+' ';i++;}h+=`<blockquote>${inline(q)}</blockquote>`;continue;}
+      if(/^(\-|\*)\s/.test(l)){let it='';while(i<L.length&&/^(\-|\*)\s/.test(L[i])){it+=`<li>${inline(L[i].replace(/^(\-|\*)\s/,''))}</li>`;i++;}h+=`<ul>${it}</ul>`;continue;}
+      if(/^\d+\.\s/.test(l)){let it='';while(i<L.length&&/^\d+\.\s/.test(L[i])){it+=`<li>${inline(L[i].replace(/^\d+\.\s/,''))}</li>`;i++;}h+=`<ol>${it}</ol>`;continue;}
+      if(/^\s*$/.test(l)){i++;continue;}
+      let p='';while(i<L.length&&!/^\s*$/.test(L[i])&&!isBlock(L[i])){p+=L[i]+' ';i++;}h+=`<p>${inline(p.trim())}</p>`;
+    }
+    return h;
+  }
+  const src=document.getElementById('src'), pv=document.getElementById('pv');
+  function renderPreview(){
+    pv.innerHTML=mdToHtml(src.value);
+    pv.querySelectorAll('.cbcopy').forEach(b=>b.onclick=()=>{const t=b.closest('.cb').querySelector('code').innerText;navigator.clipboard&&navigator.clipboard.writeText(t);b.textContent='已复制';setTimeout(()=>b.textContent='复制',1200);});
+    if(window.renderMathInElement)try{renderMathInElement(pv,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});}catch(e){}
+  }
+  src.value=sample;
+  src.addEventListener('input',renderPreview);
+  document.getElementById('katex').addEventListener('load',renderPreview);
+  renderPreview();
+</script>
+</body>
+</html>

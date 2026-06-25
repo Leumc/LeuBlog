@@ -1,0 +1,160 @@
+// LeuBlog 数据模型（SQLite + Prisma）
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum AnnouncementLevel {
+  info
+  warn
+}
+
+enum PortalPlacement {
+  sidebar
+  footer
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  role         Role     @default(EDITOR)
+  displayName  String
+  bio          String?
+  avatar       String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  posts         Post[]
+  announcements Announcement[]
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  content     String     // markdown 原文
+  excerpt     String?
+  coverImage  String?
+  status      PostStatus @default(DRAFT)
+  viewCount   Int        @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  authorId   String
+  author     User      @relation(fields: [authorId], references: [id])
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  tags       Tag[]     @relation("PostTags")
+
+  @@index([status, publishedAt])
+  @@index([authorId])
+  @@index([categoryId])
+}
+
+// 文章分组（一级）
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  order       Int        @default(0)
+  createdAt   DateTime   @default(now())
+
+  posts     Post[]
+  tagGroups TagGroup[]
+}
+
+// 标签组（二级，归属某文章分组）
+model TagGroup {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags       Tag[]
+
+  @@index([categoryId])
+}
+
+// 标签（三级，可选归属某标签组）
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  tagGroupId String?
+  tagGroup   TagGroup? @relation(fields: [tagGroupId], references: [id], onDelete: SetNull)
+  posts      Post[]    @relation("PostTags")
+
+  @@index([tagGroupId])
+}
+
+model Announcement {
+  id        String            @id @default(cuid())
+  content   String
+  level     AnnouncementLevel @default(info)
+  active    Boolean           @default(true)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime          @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  @@index([active])
+}
+
+model Portal {
+  id          String          @id @default(cuid())
+  title       String
+  url         String
+  description String?
+  icon        String?
+  group       String          @default("友链")
+  placement   PortalPlacement @default(sidebar)
+  order       Int             @default(0)
+  visible     Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+
+  @@index([placement, visible])
+}
+
+// key-value 站点设置
+model SiteSetting {
+  key   String @id
+  value String
+}
+
+// 按天聚合的访问量；postId=null 表示全站
+model DailyView {
+  id     String   @id @default(cuid())
+  date   String   // YYYY-MM-DD（本地日）
+  postId String?
+  count  Int      @default(0)
+
+  @@unique([date, postId])
+  @@index([postId])
+  @@index([date])
+}

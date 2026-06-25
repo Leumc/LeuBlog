@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog — 设计预览 · 关于</title>
+<style>
+  :root{
+    --paper:#faf7f1; --paper-2:#f6efe2; --ink:#2c2620; --ink-soft:#5d564b;
+    --rule:#ddd5c5; --accent:#9c2b22; --accent-2:#c2592f; --gold:#b08328;
+    --muted:#9a9080;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.85;-webkit-font-smoothing:antialiased;font-size:17px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
+  a{color:inherit;text-decoration:none}
+  a:hover{color:var(--accent)}
+
+  .topbar{height:5px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 70%,var(--gold) 100%)}
+  .announce{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  .announce .wrap{display:flex;align-items:center;gap:14px;padding:9px 32px;font-size:14px;color:var(--ink-soft)}
+  .announce .tag{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#fff;background:var(--accent);padding:2px 8px;border-radius:2px;font-family:Georgia,serif}
+  .announce .txt{font-style:italic}
+  .announce .x{margin-left:auto;color:var(--muted);cursor:pointer;font-style:normal}
+
+  header.masthead{text-align:center;padding:28px 0 14px;border-bottom:1px solid var(--rule)}
+  .masthead .kicker{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif}
+  .masthead h1{font-size:40px;margin:8px 0 4px;letter-spacing:.04em;font-weight:600;color:var(--ink)}
+  .masthead .sub{font-style:italic;color:var(--ink-soft);font-size:15px}
+
+  nav.main{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  nav.main .wrap{display:flex;justify-content:center;gap:38px;padding:11px 32px}
+  nav.main a{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);font-family:Georgia,serif}
+  nav.main a:hover{color:var(--accent)}
+  nav.main a.active{color:var(--accent);font-weight:700}
+
+  /* 关于页头 */
+  .about-head{text-align:center;padding:46px 0 30px;border-bottom:3px double var(--accent)}
+  .about-head .label{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);font-family:Georgia,serif}
+  .about-head h2{font-size:44px;font-weight:700;margin:14px 0 14px}
+  .about-head p{max-width:640px;margin:0 auto;font-style:italic;color:var(--ink-soft);font-size:18px}
+
+  .layout{display:grid;grid-template-columns:1fr 270px;gap:56px;padding:40px 0 30px}
+
+  .prose h3{font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-family:Georgia,serif;
+    border-bottom:1px solid var(--rule);padding-bottom:8px;margin:34px 0 16px}
+  .prose h3:first-child{margin-top:0}
+  .prose p{margin:0 0 18px;color:var(--ink)}
+  .prose p.lead::first-letter{font-size:56px;float:left;line-height:.82;padding:8px 12px 0 0;color:var(--accent);font-weight:700}
+  .prose .sign{font-style:italic;color:var(--ink-soft);margin-top:6px}
+  .prose strong{color:var(--accent-2)}
+
+  /* 数据一览 */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:30px 0}
+  .stats div{text-align:center;padding:18px 8px;border-left:1px solid var(--rule)}
+  .stats div:first-child{border-left:none}
+  .stats .num{font-size:30px;font-weight:700;color:var(--accent);font-family:Georgia,serif}
+  .stats .cap{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;font-family:Georgia,serif}
+
+  /* 侧栏 */
+  aside .block{margin-bottom:34px}
+  aside .s-label{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-family:Georgia,serif;
+    border-bottom:2px solid var(--accent);padding-bottom:7px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  aside .s-label::before{content:"";width:8px;height:8px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+  aside .contact{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule);font-size:15px}
+  aside .contact .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:Georgia,serif}
+  aside .contact a{color:var(--accent)}
+  aside .portal{padding:9px 0;border-bottom:1px solid var(--rule)}
+  aside .portal a{color:var(--accent);font-size:15px}
+  aside .portal .d{font-size:12px;color:var(--muted);font-style:italic}
+  aside .grp{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-2);font-family:Georgia,serif;margin:12px 0 2px;font-weight:700}
+  aside .colophon{font-size:13px;color:var(--ink-soft);line-height:1.7}
+  aside .colophon b{color:var(--accent-2)}
+
+  footer{border-top:3px double var(--accent);padding:24px 0 40px;text-align:center;color:var(--muted);font-size:13px;font-style:italic}
+  body{background-color:var(--paper);background-image:radial-gradient(rgba(44,38,32,.13) 1.5px,transparent 1.7px);background-size:24px 24px;background-attachment:scroll}
+</style>
+</head>
+<body>
+  <div class="topbar"></div>
+  <div class="announce"><div class="wrap">
+    <span class="tag">公告</span><span class="txt">站点已迁移至新服务器，如遇访问异常请稍后重试。— 2026/06/24</span><span class="x">×</span>
+  </div></div>
+  <header class="masthead"><div class="wrap">
+    <div class="kicker">Algorithms · Computer Science · Notes</div><h1>LeuBlog</h1>
+    <div class="sub">算法学习记录 与 计算机技术教程</div>
+  </div></header>
+  <nav class="main"><div class="wrap">
+    <a href="#">首页</a><a href="#">分组</a><a href="#">标签</a><a href="#">归档</a><a class="active" href="#">关于</a>
+  </div></nav>
+
+  <div class="wrap">
+    <div class="about-head">
+      <div class="label">About</div>
+      <h2>关于这里</h2>
+      <p>一个记录算法学习与计算机技术的角落。写给未来的自己，也分享给同路的人。</p>
+    </div>
+  </div>
+
+  <div class="wrap layout">
+    <main class="prose">
+      <h3>关于我</h3>
+      <p class="lead">我是 <strong>Leu</strong>，一名热爱算法与系统的开发者。白天写工程代码，夜里啃算法题；偶尔折腾服务器、阅读源码，把踩过的坑和想明白的事记在这里。</p>
+      <p>比起追逐最新潮的框架，我更着迷于那些「想清楚就一通百通」的基本功——一个优雅的状态转移、一段恰到好处的数据结构、一次把复杂度算明白的推导。这个博客就是这些时刻的归档。</p>
+      <p class="sign">—— 愿你也能在这里找到一两点共鸣。</p>
+
+      <h3>关于本站</h3>
+      <p>本站主要写两类内容：<strong>算法学习记录</strong>（题解、模板、复杂度推导）与<strong>计算机技术教程</strong>（部署、工具链、源码笔记）。文章支持完整的 Markdown、LaTeX 公式与代码高亮，力求把推导讲清楚、把代码讲透。</p>
+      <p>没有评论、没有登录、没有追踪——只有安静的文字。如果某篇文章帮到了你，那便是它存在的意义。</p>
+
+      <div class="stats">
+        <div><div class="num">40</div><div class="cap">文章</div></div>
+        <div><div class="num">4</div><div class="cap">分组</div></div>
+        <div><div class="num">23</div><div class="cap">标签</div></div>
+        <div><div class="num">2024</div><div class="cap">开博于</div></div>
+      </div>
+
+      <h3>写在最后</h3>
+      <p>知识是会过时的，但学习的方法与思考的乐趣不会。这里的文字若有谬误，欢迎通过下方任一方式指出——能与读者切磋，是写作之外的额外幸运。</p>
+    </main>
+
+    <aside>
+      <div class="block">
+        <div class="s-label">联系</div>
+        <div class="contact"><span class="k">Email</span><a href="#">leu@example.com</a></div>
+        <div class="contact"><span class="k">GitHub</span><a href="#">@leu ↗</a></div>
+        <div class="contact"><span class="k">RSS</span><a href="#">订阅 ↗</a></div>
+      </div>
+
+      <div class="block">
+        <div class="s-label">传送门</div>
+        <div class="grp">我的站点</div>
+        <div class="portal"><a href="#">Leu 的实验室 ↗</a><div class="d">代码与小工具合集</div></div>
+        <div class="grp">友情链接</div>
+        <div class="portal"><a href="#">某同学的博客 ↗</a><div class="d">系统与编译方向</div></div>
+        <div class="portal"><a href="#">算法竞赛笔记 ↗</a><div class="d">题解与模板</div></div>
+      </div>
+
+      <div class="block">
+        <div class="s-label">本站构建</div>
+        <div class="colophon">
+          由 <b>Next.js</b> 驱动，<b>SQLite</b> 存储，部署在一台 2 核 2G 的小服务器上。<br>
+          正文衬线字体，版式以线条分隔，向纸质杂志致敬。<br>
+          © 2024–2026 LeuBlog
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer><div class="wrap">LeuBlog · 由 Next.js 与衬线字体驱动 · © 2026</div></footer>
+</body>
+</html>

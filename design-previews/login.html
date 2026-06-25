@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeuBlog · 后台登录</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --paper:#faf7f1; --paper-2:#f6efe2; --ink:#2c2620; --ink-soft:#544e44; --rule:#ddd5c5;
+    --accent:#9c2b22; --accent-2:#c2592f; --gold:#b08328; --muted:#9a9080; --line:#e3e6ea;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+    --sans:-apple-system,"Segoe UI",Roboto,"Microsoft YaHei","PingFang SC",sans-serif;
+  }
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column}
+  .topbar{height:5px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 70%,var(--gold) 100%)}
+  a{color:var(--accent);text-decoration:none}a:hover{opacity:.8}
+
+  .center{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+  .box{width:100%;max-width:380px}
+
+  /* 品牌字标 */
+  .brand{text-align:center;padding-bottom:24px;border-bottom:3px double var(--accent);margin-bottom:28px}
+  .brand .kicker{font-family:Georgia,serif;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--accent-2)}
+  .brand h1{font-family:var(--serif);font-size:34px;font-weight:700;letter-spacing:.02em;margin:8px 0 4px}
+  .brand .sub{font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:14px}
+
+  /* 错误条（示例，可隐藏） */
+  .err{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);background:#fbeceb;border:1px solid #edc9c6;border-radius:6px;padding:9px 12px;margin-bottom:18px}
+
+  .fld{margin-bottom:16px}
+  .fld label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px}
+  .fld input{width:100%;font-family:var(--sans);font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:7px;padding:11px 12px;outline:none}
+  .fld input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(156,43,34,.10)}
+  .fld .pw{position:relative}
+  .fld .pw .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;cursor:pointer;user-select:none}
+
+  .row{display:flex;align-items:center;justify-content:space-between;margin:6px 0 20px;font-size:13px;color:var(--ink-soft)}
+  .row label{display:flex;align-items:center;gap:7px;cursor:pointer}
+  .row input{width:15px;height:15px;accent-color:var(--accent)}
+
+  .submit{width:100%;font-family:var(--sans);font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:none;border-radius:7px;padding:12px;cursor:pointer;letter-spacing:.04em}
+  .submit:hover{background:#882420}
+
+  .hint{margin-top:22px;padding-top:18px;border-top:1px solid var(--rule);text-align:center;font-size:12.5px;color:var(--muted);line-height:1.8}
+  .hint .lock{color:var(--ink-soft)}
+
+  footer{text-align:center;padding:18px;font-size:12px;color:var(--muted);font-family:var(--serif);font-style:italic}
+  body{background-color:var(--paper);background-image:radial-gradient(rgba(44,38,32,.13) 1.5px,transparent 1.7px);background-size:24px 24px;background-attachment:scroll}
+</style>
+</head>
+<body>
+  <div class="topbar"></div>
+
+  <div class="center">
+    <div class="box">
+      <div class="brand">
+        <div class="kicker">Admin · 后台登录</div>
+        <h1>LeuBlog</h1>
+        <div class="sub">算法学习记录 与 计算机技术教程</div>
+      </div>
+
+      <!-- 错误示例（实际仅在登录失败时出现） -->
+      <div class="err">⚠ 用户名或密码错误，请重试。</div>
+
+      <form onsubmit="return false">
+        <div class="fld">
+          <label>用户名 / 邮箱</label>
+          <input type="text" placeholder="leu 或 leu@example.com" autofocus>
+        </div>
+        <div class="fld">
+          <label>密码</label>
+          <div class="pw">
+            <input type="password" placeholder="••••••••">
+            <span class="eye" onclick="var i=this.previousElementSibling;i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'显示':'隐藏'">显示</span>
+          </div>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" checked> 记住我（30 天）</label>
+          <a href="#">忘记密码？</a>
+        </div>
+        <button class="submit">登 录</button>
+      </form>
+
+      <div class="hint">
+        <span class="lock">🔒 本站不开放公开注册</span><br>
+        仅<b>编者</b>与<b>管理员</b>可登录。需要账号请联系站点管理员。<br>
+        <a href="#">← 返回站点首页</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>LeuBlog · © 2024–2026 · 由 Next.js 与衬线字体驱动</footer>
+</body>
+</html>
