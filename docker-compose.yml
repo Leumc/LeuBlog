@@ -13,9 +13,9 @@ services:
       ADMIN_DISPLAY_NAME: "${ADMIN_DISPLAY_NAME:-站长}"
       SITE_NAME: "${SITE_NAME:-LeuBlog}"
       NODE_ENV: "production"
-      # 通过 HTTPS 访问时设为 true；纯 HTTP（仅 80 端口）必须保持 false，
-      # 否则浏览器拒绝存储 Secure cookie，登录无法保持。
-      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
+      # 已配 HTTPS，默认 true（用 Secure cookie）。
+      # 若临时回退到纯 HTTP 访问，需在 .env 设 COOKIE_SECURE=false，否则登录无法保持。
+      COOKIE_SECURE: "${COOKIE_SECURE:-true}"
     volumes:
       - ./data:/app/data
       - ./uploads:/app/uploads
