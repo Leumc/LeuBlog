@@ -10,7 +10,7 @@ import rehypePrettyCode, { type Options as PrettyCodeOptions } from "rehype-pret
 import rehypeStringify from "rehype-stringify";
 import GithubSlugger from "github-slugger";
 
-export type TocItem = { id: string; text: string; level: 2 | 3 };
+export type TocItem = { id: string; text: string; level: number };
 
 /** 自定义 Shiki 主题，颜色对齐设计稿（--kw/--ty/--str/--com/--num/--fn） */
 const LEU_CODE_THEME = {
@@ -85,7 +85,9 @@ export async function renderMarkdown(md: string): Promise<string> {
   return String(file);
 }
 
-/** 提取 h2/h3 目录，slug 规则与 rehype-slug 一致（github-slugger） */
+/** 提取 h1–h4 目录，slug 规则与 rehype-slug 一致（github-slugger）。
+ *  level 保留原始标题层级(1–4)；若文章最高层级 >1（如从 ## 开始），
+ *  调用方可据此归一化缩进。 */
 export function extractToc(md: string): TocItem[] {
   const tree = unified().use(remarkParse).use(remarkGfm).parse(md);
   const slugger = new GithubSlugger();
@@ -99,9 +101,9 @@ export function extractToc(md: string): TocItem[] {
   };
 
   const walk = (n: Node) => {
-    if (n.type === "heading" && (n.depth === 2 || n.depth === 3)) {
+    if (n.type === "heading" && n.depth && n.depth >= 1 && n.depth <= 4) {
       const t = text(n).trim();
-      if (t) items.push({ id: slugger.slug(t), text: t, level: n.depth as 2 | 3 });
+      if (t) items.push({ id: slugger.slug(t), text: t, level: n.depth });
     }
     n.children?.forEach(walk);
   };

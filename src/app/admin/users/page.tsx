@@ -10,93 +10,80 @@ export default async function UsersPage() {
   });
 
   return (
-    <div className="max-w-4xl">
-      <h1 className="mb-1 font-serif text-2xl font-bold text-neutral-900">用户</h1>
-      <p className="mb-5 text-sm text-neutral-500">
-        管理员全站唯一，只能创建/管理编者。读者无需账号。
-      </p>
+    <>
+      <div className="note">
+        系统<b>仅允许一个管理员</b>。管理员可创建/禁用编者、重置密码；编者只能管理自己的文章。
+      </div>
 
       <CreateEditorForm />
 
-      <div className="overflow-x-auto bg-white shadow-sm">
-        <table className="w-full text-sm">
+      <div className="panel">
+        <div className="h">
+          <h2>用户</h2>
+        </div>
+        <table>
           <thead>
-            <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wider text-neutral-500">
-              <th className="px-4 py-2">用户名</th>
-              <th className="px-4 py-2">显示名</th>
-              <th className="px-4 py-2">角色</th>
-              <th className="px-4 py-2">文章</th>
-              <th className="px-4 py-2">状态</th>
-              <th className="px-4 py-2">创建</th>
-              <th className="px-4 py-2 text-right">操作</th>
+            <tr>
+              <th>用户</th>
+              <th>角色</th>
+              <th>邮箱</th>
+              <th className="num">文章</th>
+              <th>状态</th>
+              <th>加入时间</th>
+              <th style={{ width: 200 }} />
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-b border-neutral-100">
-                <td className="px-4 py-2.5 font-medium">{u.username}</td>
-                <td className="px-4 py-2.5 text-neutral-600">{u.displayName}</td>
-                <td className="px-4 py-2.5">
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-[11px] ${
-                      u.role === "ADMIN"
-                        ? "bg-accent/10 text-accent"
-                        : "bg-neutral-200 text-neutral-600"
-                    }`}
-                  >
+              <tr key={u.id}>
+                <td className="ttl">{u.displayName}</td>
+                <td>
+                  <span className={`pill ${u.role === "ADMIN" ? "admin" : "muted"}`}>
                     {u.role === "ADMIN" ? "管理员" : "编者"}
                   </span>
                 </td>
-                <td className="px-4 py-2.5 text-neutral-600">{u._count.posts}</td>
-                <td className="px-4 py-2.5">
-                  {u.role === "ADMIN" ? (
-                    <span className="text-neutral-400">—</span>
-                  ) : (
-                    <form action={toggleUserActive}>
-                      <input type="hidden" name="id" value={u.id} />
-                      <button
-                        className={`rounded px-2 py-0.5 text-xs ${
-                          u.active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-neutral-200 text-neutral-500"
-                        }`}
-                      >
-                        {u.active ? "启用中" : "已禁用"}
-                      </button>
-                    </form>
-                  )}
+                <td className="sub2">{u.email}</td>
+                <td className="num">{u._count.posts}</td>
+                <td>
+                  <span className={`status ${u.active ? "pub" : "draft"}`}>
+                    {u.active ? "正常" : "已禁用"}
+                  </span>
                 </td>
-                <td className="px-4 py-2.5 text-neutral-500">{formatDate(u.createdAt)}</td>
-                <td className="px-4 py-2.5 text-right">
-                  {u.role === "ADMIN" ? (
-                    <span className="text-neutral-300">—</span>
-                  ) : (
-                    <div className="flex items-center justify-end gap-2">
-                      <form action={resetPassword} className="flex items-center gap-1">
-                        <input type="hidden" name="id" value={u.id} />
-                        <input
-                          name="password"
-                          placeholder="新密码"
-                          className="w-24 border border-neutral-300 px-1.5 py-0.5 text-xs"
-                        />
-                        <button className="text-xs text-accent hover:underline">重置</button>
-                      </form>
-                      {u._count.posts === 0 && (
-                        <form action={deleteUser}>
+                <td className="sub2">{formatDate(u.createdAt).replace(/^\d+ 年 /, "")}</td>
+                <td>
+                  <div className="acts">
+                    {u.role === "ADMIN" ? (
+                      <span className="sub2">—</span>
+                    ) : (
+                      <>
+                        <form action={resetPassword} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <input type="hidden" name="id" value={u.id} />
-                          <button className="text-xs text-neutral-400 hover:text-accent">
-                            删除
-                          </button>
+                          <input
+                            name="password"
+                            placeholder="重置密码"
+                            style={{ width: 80, fontSize: 11.5, border: "1px solid var(--aline)", borderRadius: 6, padding: "4px 6px" }}
+                          />
+                          <button className="lk">重置</button>
                         </form>
-                      )}
-                    </div>
-                  )}
+                        <form action={toggleUserActive}>
+                          <input type="hidden" name="id" value={u.id} />
+                          <button className="lk del">{u.active ? "禁用" : "启用"}</button>
+                        </form>
+                        {u._count.posts === 0 && (
+                          <form action={deleteUser}>
+                            <input type="hidden" name="id" value={u.id} />
+                            <button className="lk del">删除</button>
+                          </form>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+    </>
   );
 }

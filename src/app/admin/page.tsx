@@ -39,36 +39,48 @@ export default async function AdminDashboard() {
   ]);
   const totalViews = totalViewsAgg._sum.viewCount ?? 0;
 
-  const [catCount, tagCount, editorCount, portalCount, activeAnn, trend, recentAnns, newEditors] =
-    isAdmin
-      ? await Promise.all([
-          prisma.category.count(),
-          prisma.tag.count(),
-          prisma.user.count({ where: { role: "EDITOR" } }),
-          prisma.portal.count(),
-          prisma.announcement.count({ where: { active: true } }),
-          viewTrend(14),
-          prisma.announcement.findMany({ orderBy: { createdAt: "desc" }, take: 3, include: { author: true } }),
-          prisma.user.findMany({
-            where: { role: "EDITOR" },
-            orderBy: { createdAt: "desc" },
-            take: 3,
-            include: { _count: { select: { posts: true } } },
-          }),
-        ])
-      : [0, 0, 0, 0, 0, [], [], []];
+  let catCount = 0,
+    tagCount = 0,
+    editorCount = 0,
+    portalCount = 0,
+    activeAnn = 0;
+  let trend: { date: string; count: number }[] = [];
+  let recentAnns: { id: string; content: string; createdAt: Date; author: { displayName: string } }[] = [];
+  let newEditors: { displayName: string; createdAt: Date; _count: { posts: number } }[] = [];
+
+  if (isAdmin) {
+    [
+      catCount,
+      tagCount,
+      editorCount,
+      portalCount,
+      activeAnn,
+      trend,
+      recentAnns,
+      newEditors,
+    ] = await Promise.all([
+      prisma.category.count(),
+      prisma.tag.count(),
+      prisma.user.count({ where: { role: "EDITOR" } }),
+      prisma.portal.count(),
+      prisma.announcement.count({ where: { active: true } }),
+      viewTrend(14),
+      prisma.announcement.findMany({ orderBy: { createdAt: "desc" }, take: 3, include: { author: true } }),
+      prisma.user.findMany({
+        where: { role: "EDITOR" },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        include: { _count: { select: { posts: true } } },
+      }),
+    ]);
+  }
 
   const todayKey = today();
-  const todayViews = (trend as { date: string; count: number }[]).find((d) => d.date === todayKey)?.count ?? 0;
-  const last7 = (trend as { date: string; count: number }[]).slice(-7).reduce((a, b) => a + b.count, 0);
-  const total14 = (trend as { date: string; count: number }[]).reduce((a, b) => a + b.count, 0);
-  const peak = (trend as { date: string; count: number }[]).reduce(
-    (m, d) => (d.count > m.count ? d : m),
-    { date: "", count: 0 },
-  );
-  const avg = (trend as { date: string; count: number }[]).length
-    ? Math.round(total14 / (trend as { date: string; count: number }[]).length)
-    : 0;
+  const todayViews = trend.find((d) => d.date === todayKey)?.count ?? 0;
+  const last7 = trend.slice(-7).reduce((a, b) => a + b.count, 0);
+  const total14 = trend.reduce((a, b) => a + b.count, 0);
+  const peak = trend.reduce((m, d) => (d.count > m.count ? d : m), { date: "", count: 0 });
+  const avg = trend.length ? Math.round(total14 / trend.length) : 0;
 
   // 活动流
   const activity = [
@@ -83,8 +95,7 @@ export default async function AdminDashboard() {
       ),
       time: p.updatedAt,
     })),
-    ...(recentAnns as { id: string; content: string; createdAt: Date; author: { displayName: string } }[]).map(
-      (a) => ({
+    ...recentAnns.map((a) => ({
         kind: "ann",
         icon: "!",
         text: (
@@ -99,9 +110,7 @@ export default async function AdminDashboard() {
     .sort((x, y) => y.time.getTime() - x.time.getTime())
     .slice(0, 5);
 
-  const idleEditors = (newEditors as { displayName: string; createdAt: Date; _count: { posts: number } }[]).filter(
-    (e) => e._count.posts === 0,
-  );
+  const idleEditors = newEditors.filter((e) => e._count.posts === 0);
 
   return (
     <>
@@ -161,7 +170,7 @@ export default async function AdminDashboard() {
               </span>
             </div>
             <div className="b">
-              <BarChart data={trend as { date: string; count: number }[]} />
+              <BarChart data={trend} />
               <div className="chartfoot">
                 <span>
                   近 14 天合计 <b>{formatViews(total14)}</b> 次
@@ -198,7 +207,7 @@ export default async function AdminDashboard() {
           <div className="h">
             <h2>热门文章排行{isAdmin ? "" : "（我的）"}</h2>
             <Link className="more" href="/admin/posts">
-              查看全部
+              查看全部 →
             </Link>
           </div>
           <table>
@@ -217,7 +226,11 @@ export default async function AdminDashboard() {
                   <td>
                     <span className={`rank${i < 3 ? " top" : ""}`}>{i + 1}</span>
                   </td>
-                  <td className="ttl">{p.title}</td>
+                  <td className="ttl">
+                    <Link href={`/posts/${p.slug}`} target="_blank" style={{ color: "var(--aink)" }}>
+                      {p.title}
+                    </Link>
+                  </td>
                   <td>{p.category ? <span className="tag">{p.category.name}</span> : "—"}</td>
                   <td>{p.author.displayName}</td>
                   <td className="num">{formatViews(p.viewCount)}</td>

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import type { EditorView } from "@codemirror/view";
-import { savePost } from "@/app/admin/posts/post-actions";
+import { savePostAsDraft, publishPost } from "@/app/admin/posts/post-actions";
 
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), { ssr: false });
 
@@ -99,7 +99,7 @@ export default function PostEditor({
     setTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
 
   return (
-    <form action={savePost}>
+    <form action={savePostAsDraft}>
       {post.id && <input type="hidden" name="id" value={post.id} />}
       <input type="hidden" name="content" value={content} />
       <input type="hidden" name="tagIds" value={JSON.stringify(tagIds)} />
@@ -143,10 +143,18 @@ export default function PostEditor({
             </select>
           </div>
           <span className="sp" style={{ marginLeft: "auto" }} />
-          <button type="submit" name="status" value="DRAFT" className="btn sm">
+          <button
+            type="submit"
+            formAction={savePostAsDraft}
+            className="btn sm"
+          >
             保存草稿
           </button>
-          <button type="submit" name="status" value="PUBLISHED" className="btn primary sm">
+          <button
+            type="submit"
+            formAction={publishPost}
+            className="btn primary sm"
+          >
             {post.status === "PUBLISHED" ? "更新发布" : "发布"}
           </button>
         </div>

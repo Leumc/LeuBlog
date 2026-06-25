@@ -29,6 +29,9 @@ export default function Toc({ items }: { items: TocItem[] }) {
     navigator.clipboard?.writeText(window.location.href).catch(() => {});
   };
 
+  const minLevel = items.length ? Math.min(...items.map((i) => i.level)) : 1;
+  const indent = (level: number) => 12 + (level - minLevel) * 14;
+
   return (
     <nav className="toc">
       <div className="lbl">目录</div>
@@ -37,7 +40,7 @@ export default function Toc({ items }: { items: TocItem[] }) {
           key={i.id}
           href={`#${i.id}`}
           className={i.id === active ? "on" : ""}
-          style={i.level === 3 ? { paddingLeft: 24 } : undefined}
+          style={{ paddingLeft: indent(i.level) }}
           onClick={(e) => {
             e.preventDefault();
             document.getElementById(i.id)?.scrollIntoView({ behavior: "smooth", block: "start" });

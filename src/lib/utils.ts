@@ -1,12 +1,15 @@
 /** 通用工具（可用于服务端/客户端，勿引入 server-only 依赖） */
 
-/** 标题转 slug（中文保留，空格转连字符） */
+/** 标题转 slug：仅保留 ASCII 字母数字与连字符，确保可作为 URL 路径段。
+ *  中文等非 ASCII 字符不保留（避免 URL 编码导致路由 404/400）；
+ *  结果为空时回退到 post-<随机>。 */
 export function slugify(input: string): string {
   const s = input
     .trim()
     .toLowerCase()
     .replace(/[\s]+/g, "-")
-    .replace(/[^\p{L}\p{N}\-]/gu, "")
+    // 先把非 ASCII 字母（含中文）与标点整体丢弃
+    .replace(/[^a-z0-9\-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
   return s || "post-" + Math.random().toString(36).slice(2, 8);

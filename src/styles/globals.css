@@ -15,8 +15,6 @@
   --ink-soft-2: #5d564b;
   --rule: #ddd5c5;
   --accent: #9c2b22;
-  --accent-2: #c2592f;
-  --gold: #b08328;
   --muted: #9a9080;
   --line: #e3e6ea;
 
@@ -28,15 +26,20 @@
   --code-bg: #272320;
   --code-fg: #e9e2d4;
 
-  /* 热力图分级（归档） */
-  --c0: #ece5d7;
-  --c1: #e7b9a8;
-  --c2: #d3795b;
-  --c3: #a83026;
+  /* 派生色：全部由 --accent 计算，切换强调色时整组跟随。
+     使用 color-mix 在使用点按当前元素的 --accent 重新解析。 */
+  --accent-2: color-mix(in srgb, var(--accent), #e8a87a 45%);
+  --gold: color-mix(in srgb, var(--accent) 40%, #c9a14a);
 
-  /* 侧栏色条（归档 / 文章目录） */
-  --band: #87211a;
-  --band-edge: #c96a4a;
+  /* 热力图分级（归档）：由 accent 从浅到深 */
+  --c0: #ece5d7;
+  --c1: color-mix(in srgb, var(--accent), #fff 70%);
+  --c2: color-mix(in srgb, var(--accent), #fff 35%);
+  --c3: color-mix(in srgb, var(--accent), #000 8%);
+
+  /* 侧栏色条（归档 / 文章目录）：accent 的深调 + 亮调 */
+  --band: color-mix(in srgb, var(--accent), #000 42%);
+  --band-edge: color-mix(in srgb, var(--accent), #fff 18%);
 }
 
 @layer base {
@@ -564,6 +567,16 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 
 /* 正文 */
 .body { padding-top: 10px; font-size: 18px; line-height: 1.85; }
+.body h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 10px;
+  margin: 46px 0 18px;
+  scroll-margin-top: 80px;
+}
 .body h2 {
   font-size: 28px;
   font-weight: 700;
@@ -575,6 +588,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   scroll-margin-top: 80px;
 }
 .body h3 { font-size: 22px; font-weight: 700; margin: 30px 0 14px; scroll-margin-top: 80px; }
+.body h4 { font-size: 19px; font-weight: 700; margin: 24px 0 12px; scroll-margin-top: 80px; }
 .body p { margin: 0 0 18px; }
 .body p.lead::first-letter { font-size: 58px; float: left; line-height: 0.82; padding: 8px 12px 0 0; color: var(--accent); font-weight: 700; }
 .body strong { color: var(--accent-2); }
@@ -685,7 +699,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .toc a.on { color: #fff; border-left-color: #fff; font-weight: 600; }
 .toc .share { margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.25); padding-top: 14px; font-size: 13px; color: rgba(255, 255, 255, 0.7); }
 .toc .share .k { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); font-family: Georgia, serif; margin-bottom: 6px; }
-.toc .share a { padding: 0; border: none; color: #ffe2cf; display: inline; }
+.toc .share a { padding: 0; border: none; color: rgba(255,255,255,0.78); display: inline; }
 
 /* ============================================================
    归档（焦点跟随侧栏 + 热力图）
@@ -695,7 +709,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .side-inner { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow: auto; padding: 16px 12px 18px 16px; scrollbar-width: none; }
 .side-inner::-webkit-scrollbar { width: 0; display: none; }
 .side .lbl { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); font-family: Georgia, serif; margin: 0 0 6px; }
-.yrow { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 8px 10px 12px; cursor: pointer; font-family: Georgia, serif; font-size: 20px; color: #fff6f1; border-left: 3px solid transparent; border-bottom: 1px solid rgba(255, 255, 255, 0.22); }
+.yrow { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 8px 10px 12px; cursor: pointer; font-family: Georgia, serif; font-size: 20px; color: rgba(255,255,255,0.95); border-left: 3px solid transparent; border-bottom: 1px solid rgba(255, 255, 255, 0.22); }
 .yrow:hover { color: #fff; }
 .yrow.on { color: #fff; font-weight: 700; background: rgba(255, 255, 255, 0.16); border-left-color: #fff; }
 .yrow .n { font-size: 12px; color: rgba(255, 255, 255, 0.72); font-weight: 400; }
@@ -705,9 +719,9 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .mrow:not(.zero):hover { color: #fff; }
 .mrow.on { color: #fff; font-weight: 700; border-left-color: #fff; }
 .mrow .n { font-size: 11px; color: rgba(255, 255, 255, 0.72); font-family: Georgia, serif; }
-.mrow.on .n { color: #ffe2cf; }
+.mrow.on .n { color: rgba(255,255,255,0.78); }
 .minical { margin: 5px 8px 12px 26px; padding: 10px; background: #f4ece0; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 2px; }
-.minical .cap { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #a83026; font-family: Georgia, serif; margin-bottom: 7px; text-align: center; }
+.minical .cap { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--c3); font-family: Georgia, serif; margin-bottom: 7px; text-align: center; }
 .mc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .mc-grid .wd { font-size: 10px; color: #9a8d7a; text-align: center; font-family: Georgia, serif; }
 .mc-d { aspect-ratio: 1; border-radius: 2px; background: #e3d6c4; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; }
@@ -715,7 +729,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .mc-d.lv1 { background: var(--c1); }
 .mc-d.lv2 { background: var(--c2); }
 .mc-d.lv3 { background: var(--c3); }
-.mc-d.has { cursor: pointer; color: #5a1d18; font-family: Georgia, serif; }
+.mc-d.has { cursor: pointer; color: var(--c3); font-family: Georgia, serif; }
 .mc-d.has:hover { outline: 2px solid var(--ink); outline-offset: 1px; }
 .yhead { scroll-margin-top: 10px; }
 .year { font-size: 38px; font-weight: 700; color: var(--ink); font-family: Georgia, serif; border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin: 34px 0 6px; }
@@ -745,7 +759,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .month-h { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-2); font-family: Georgia, serif; font-weight: 700; margin: 18px 0 2px; }
 .month-h span { color: var(--muted); font-weight: 400; letter-spacing: 0; }
 .arow { display: grid; grid-template-columns: 62px 1fr auto; gap: 16px; align-items: baseline; padding: 10px 0; border-bottom: 1px dotted var(--rule); scroll-margin-top: 14px; transition: background 0.3s; }
-.arow.flash { background: #f3d9c9; }
+.arow.flash { background: color-mix(in srgb, var(--accent), #fff 72%); }
 .arow .date { font-size: 13px; color: var(--muted); font-family: Georgia, serif; white-space: nowrap; }
 .arow .title a:hover { color: var(--accent); }
 .arow .cat { font-size: 11px; letter-spacing: 0.1em; color: var(--accent); border: 1px solid var(--rule); padding: 1px 8px; border-radius: 2px; white-space: nowrap; background: transparent; }
@@ -805,6 +819,22 @@ footer.site { border-top: 3px double var(--accent); padding: 24px 0 40px; text-a
 footer.site .portal-links { margin-bottom: 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 0; }
 footer.site .portal-links a { color: var(--accent); padding: 0 16px; border-right: 1px solid var(--rule); }
 footer.site .portal-links a:last-child { border-right: none; }
+footer.site .foot-row { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+
+/* 读者侧强调色切换器 */
+.accent-switcher { position: relative; display: inline-block; font-style: normal; }
+.as-trigger { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--rule); border-radius: 14px; padding: 3px 12px; font-size: 12px; color: var(--ink-soft); cursor: pointer; font-family: var(--sans); }
+.as-trigger:hover { border-color: var(--accent); color: var(--accent); }
+.as-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--rule); display: inline-block; }
+.as-pop { position: absolute; right: 0; bottom: calc(100% + 8px); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); min-width: 180px; text-align: left; z-index: 20; }
+.as-presets { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.as-opt { display: flex; align-items: center; gap: 8px; background: none; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--ink); font-family: var(--sans); }
+.as-opt:hover { background: var(--paper-2); }
+.as-opt.on { background: var(--paper-2); color: var(--accent); font-weight: 600; }
+.as-custom { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--rule); padding-top: 8px; font-size: 12px; color: var(--ink-soft); font-family: var(--sans); }
+.as-custom input { width: 24px; height: 24px; border: 1px solid var(--rule); border-radius: 6px; padding: 0; background: none; cursor: pointer; }
+.as-reset { width: 100%; margin-top: 8px; background: none; border: 1px solid var(--rule); border-radius: 6px; padding: 6px; font-size: 12px; color: var(--muted); cursor: pointer; font-family: var(--sans); }
+.as-reset:hover { color: var(--accent); border-color: var(--accent); }
 
 /* ============================================================
    后台（admin）—— 1:1 复刻 admin.html，全部作用域限定在 .admin 下
@@ -854,10 +884,10 @@ footer.site .portal-links a:last-child { border-right: none; }
 .admin .side .me .logout:hover { color: #fff; }
 
 .admin .main { display: flex; flex-direction: column; min-width: 0; }
-.admin .top { background: var(--panel); border-bottom: 1px solid var(--aline); padding: 12px 24px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 5; }
-.admin .top h1 { font-size: 17px; font-weight: 700; }
-.admin .top .crumb { font-size: 12px; color: var(--amuted); }
-.admin .top .sp { margin-left: auto; }
+.admin .main > .top { background: var(--panel); border-bottom: 1px solid var(--aline); padding: 12px 24px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 5; }
+.admin .main > .top h1 { font-size: 17px; font-weight: 700; }
+.admin .main > .top .crumb { font-size: 12px; color: var(--amuted); }
+.admin .main > .top .sp { margin-left: auto; }
 
 .admin .btn { font-family: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--aline); background: #fff; color: var(--aink); cursor: pointer; }
 .admin .btn:hover { border-color: #c7ccd3; }
@@ -871,7 +901,8 @@ footer.site .portal-links a:last-child { border-right: none; }
 .admin .panel { background: var(--panel); border: 1px solid var(--aline); border-radius: 8px; }
 .admin .panel .h { padding: 13px 16px; border-bottom: 1px solid var(--aline); display: flex; align-items: center; gap: 10px; }
 .admin .panel .h h2 { font-size: 14px; font-weight: 700; }
-.admin .panel .h .more { margin-left: auto; font-size: 12.5px; color: var(--aaccent); }
+.admin .panel .h .more { margin-left: auto; font-size: 12.5px; color: var(--aaccent); background: none; padding: 0; border: none; border-radius: 0; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.admin .panel .h .more:hover { background: none; color: #9d2b23; }
 .admin .panel .h .right { margin-left: auto; }
 .admin .panel .b { padding: 16px; }
 
@@ -906,7 +937,7 @@ footer.site .portal-links a:last-child { border-right: none; }
 .admin tr:last-child td { border-bottom: none; }
 .admin tbody tr:hover { background: #fafbfc; }
 .admin td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--soft); }
-.admin .rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-size: 12px; font-weight: 700; background: #eef0f3; color: var(--soft); }
+.admin .rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; line-height: 1; border-radius: 4px; font-size: 12px; font-weight: 700; background: #eef0f3; color: var(--soft); font-variant-numeric: tabular-nums; flex: none; vertical-align: middle; box-sizing: border-box; }
 .admin .rank.top { background: var(--aaccent); color: #fff; }
 .admin .ttl { font-weight: 600; color: var(--aink); }
 .admin .sub2 { font-size: 11.5px; color: var(--amuted); margin-top: 1px; }
@@ -966,8 +997,23 @@ footer.site .portal-links a:last-child { border-right: none; }
 .admin .ed-paneh div { padding: 8px 16px; border-bottom: 1px solid var(--aline); }
 .admin .ed-paneh div:first-child { border-right: 1px solid var(--aline); }
 .admin .editor { display: grid; grid-template-columns: 1fr 1fr; }
-.admin .editor .cm-editor { border-right: 1px solid var(--aline); min-height: 520px; font-size: 13.5px; }
-.admin .ed-pv { padding: 22px 26px; min-height: 520px; max-height: 660px; overflow: auto; }
+.admin .editor > * { min-width: 0; }
+.admin .editor .cm-editor { border-right: 1px solid var(--aline); min-height: 520px; font-size: 13.5px; max-width: 100%; }
+.admin .editor .cm-editor .cm-scroller { overflow: auto; }
+.admin .ed-pv { padding: 22px 26px; min-height: 520px; max-height: 660px; overflow: auto; min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+.admin .ed-pv pre { overflow-x: auto; max-width: 100%; }
+.admin .ed-pv h1 { font-size: 30px; margin: 0 0 12px; font-weight: 700; line-height: 1.3; }
+.admin .ed-pv h2 { font-size: 23px; margin: 26px 0 12px; border-bottom: 1px solid #e7e0d2; padding-bottom: 6px; font-weight: 700; }
+.admin .ed-pv h3 { font-size: 19px; margin: 20px 0 10px; font-weight: 700; }
+.admin .ed-pv h4 { font-size: 17px; margin: 16px 0 8px; font-weight: 700; }
+.admin .ed-pv p { margin: 0 0 14px; }
+.admin .ed-pv ul, .admin .ed-pv ol { margin: 0 0 14px; padding-left: 1.4em; }
+.admin .ed-pv ul { list-style: disc; }
+.admin .ed-pv ol { list-style: decimal; }
+.admin .ed-pv li { margin: 5px 0; }
+.admin .ed-pv strong { color: var(--aaccent); }
+.admin .ed-pv :not(pre) > code { font-family: var(--mono); font-size: 0.85em; background: #f3eee2; border: 1px solid #e3dccb; padding: 1px 5px; border-radius: 3px; color: var(--aaccent); }
+.admin .ed-pv blockquote { margin: 16px 0; padding: 6px 18px; border-left: 3px solid var(--aaccent); background: #f6efe2; color: #544e44; font-style: italic; }
 
 /* 分类法三栏 */
 .admin .tax { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }

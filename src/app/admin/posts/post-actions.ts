@@ -17,7 +17,7 @@ async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
   }
 }
 
-export async function savePost(formData: FormData): Promise<void> {
+async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): Promise<void> {
   const user = await requireUser();
 
   const id = String(formData.get("id") || "");
@@ -26,7 +26,6 @@ export async function savePost(formData: FormData): Promise<void> {
   const slugInput = String(formData.get("slug") || "").trim();
   const excerptInput = String(formData.get("excerpt") || "").trim();
   const categoryId = String(formData.get("categoryId") || "") || null;
-  const status = formData.get("status") === "PUBLISHED" ? "PUBLISHED" : "DRAFT";
   const tagIds = JSON.parse(String(formData.get("tagIds") || "[]")) as string[];
 
   if (!title) throw new Error("标题不能为空");
@@ -75,6 +74,14 @@ export async function savePost(formData: FormData): Promise<void> {
   revalidatePath("/admin/posts");
   revalidatePath("/");
   redirect("/admin/posts");
+}
+
+export async function savePostAsDraft(formData: FormData): Promise<void> {
+  return persistPost(formData, "DRAFT");
+}
+
+export async function publishPost(formData: FormData): Promise<void> {
+  return persistPost(formData, "PUBLISHED");
 }
 
 export async function deletePost(formData: FormData): Promise<void> {

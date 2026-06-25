@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { getSetting } from "@/lib/settings";
+import { normalizeAccent } from "@/lib/appearance";
+import AccentSwitcher from "@/components/reader/AccentSwitcher";
 
 export default async function SiteFooter() {
-  const placement = await getSetting("portal.placement");
+  const [placement, accent] = await Promise.all([
+    getSetting("portal.placement"),
+    getSetting("appearance.accent"),
+  ]);
   const footerPortals =
     placement === "footer"
       ? await prisma.portal.findMany({
@@ -23,7 +28,10 @@ export default async function SiteFooter() {
             ))}
           </div>
         )}
-        LeuBlog · 由 Next.js 与衬线字体驱动 · © {new Date().getFullYear()}
+        <div className="foot-row">
+          <span>LeuBlog · 由 Next.js 与衬线字体驱动 · © {new Date().getFullYear()}</span>
+          <AccentSwitcher defaultAccent={normalizeAccent(accent)} />
+        </div>
       </div>
     </footer>
   );

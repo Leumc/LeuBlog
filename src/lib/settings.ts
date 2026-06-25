@@ -1,5 +1,14 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import {
+  ACCENT_PRESETS,
+  DEFAULT_ACCENT,
+  DEFAULT_PAPER,
+  isValidHex,
+  normalizeAccent,
+} from "@/lib/appearance";
+
+export { ACCENT_PRESETS, isValidHex, normalizeAccent };
 
 /** 站点设置默认值（后台「设置」可覆盖） */
 export const SETTING_DEFAULTS = {
@@ -10,6 +19,8 @@ export const SETTING_DEFAULTS = {
   "masthead.subtitle": "算法学习记录 与 计算机技术教程",
   "home.postCount": "8",
   "portal.placement": "sidebar", // sidebar | footer
+  "appearance.accent": DEFAULT_ACCENT,
+  "appearance.paper": DEFAULT_PAPER,
   "about.content":
     "# 关于本站\n\n这里记录我的算法学习与计算机技术笔记。内容可在后台「设置」中修改。",
   "about.contact": "邮箱：admin@leublog.local",

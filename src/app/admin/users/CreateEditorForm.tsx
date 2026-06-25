@@ -4,37 +4,47 @@ import { useActionState } from "react";
 import { createEditor, type UserActionState } from "./actions";
 
 export default function CreateEditorForm() {
-  const [state, action, pending] = useActionState<UserActionState, FormData>(
-    createEditor,
-    {},
-  );
+  const [state, action, pending] = useActionState<UserActionState, FormData>(createEditor, {});
   return (
-    <form
-      action={action}
-      className="mb-6 grid grid-cols-1 gap-3 bg-white p-5 text-sm shadow-sm sm:grid-cols-2"
-    >
-      <input name="email" type="email" placeholder="邮箱" required className="border border-neutral-300 px-2 py-1.5" />
-      <input name="username" placeholder="用户名（登录用）" required className="border border-neutral-300 px-2 py-1.5" />
-      <input name="displayName" placeholder="显示名（可空）" className="border border-neutral-300 px-2 py-1.5" />
-      <input name="password" type="text" placeholder="初始密码（≥6 位）" required className="border border-neutral-300 px-2 py-1.5" />
-      {state.error && (
-        <p className="border border-accent bg-paper-2 px-3 py-2 text-accent sm:col-span-2">
-          {state.error}
-        </p>
-      )}
-      {state.ok && (
-        <p className="border border-green-400 bg-green-50 px-3 py-2 text-green-700 sm:col-span-2">
-          {state.ok}
-        </p>
-      )}
-      <div className="sm:col-span-2">
-        <button
-          disabled={pending}
-          className="bg-accent px-4 py-2 text-white hover:bg-accent-2 disabled:opacity-60"
-        >
-          {pending ? "创建中…" : "创建编者"}
-        </button>
+    <div className="panel">
+      <div className="h">
+        <h2>新建编者</h2>
       </div>
-    </form>
+      <div className="b">
+        <form action={action} className="grid3">
+          <div className="fld">
+            <label>邮箱</label>
+            <input name="email" type="email" required />
+          </div>
+          <div className="fld">
+            <label>用户名（登录用）</label>
+            <input name="username" required />
+          </div>
+          <div className="fld">
+            <label>显示名（可空）</label>
+            <input name="displayName" />
+          </div>
+          <div className="fld">
+            <label>初始密码（≥6 位）</label>
+            <input name="password" type="text" required />
+          </div>
+          {state.error && (
+            <div className="note" style={{ gridColumn: "1 / -1", color: "var(--aaccent)", background: "var(--accent-soft)", borderColor: "#edc9c6" }}>
+              {state.error}
+            </div>
+          )}
+          {state.ok && (
+            <div className="note" style={{ gridColumn: "1 / -1", color: "var(--ok)", background: "var(--ok-bg)", borderColor: "#cfe9d8" }}>
+              {state.ok}
+            </div>
+          )}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <button className="btn primary" disabled={pending}>
+              {pending ? "创建中…" : "＋ 新建编者"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

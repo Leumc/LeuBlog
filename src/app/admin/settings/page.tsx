@@ -1,5 +1,6 @@
 import { getSettings } from "@/lib/settings";
 import { saveSettings } from "./actions";
+import AccentPicker from "./AccentPicker";
 
 function Field({
   name,
@@ -7,32 +8,26 @@ function Field({
   value,
   textarea,
   rows,
+  hint,
+  width,
 }: {
   name: string;
   label: string;
   value: string;
   textarea?: boolean;
   rows?: number;
+  hint?: string;
+  width?: number;
 }) {
   return (
-    <div>
-      <label className="mb-1 block text-xs uppercase tracking-wider text-neutral-500">
-        {label}
-      </label>
+    <div className="fld">
+      <label>{label}</label>
       {textarea ? (
-        <textarea
-          name={name}
-          defaultValue={value}
-          rows={rows ?? 4}
-          className="w-full border border-neutral-300 px-2 py-1.5 outline-none focus:border-accent"
-        />
+        <textarea name={name} defaultValue={value} rows={rows ?? 4} />
       ) : (
-        <input
-          name={name}
-          defaultValue={value}
-          className="w-full border border-neutral-300 px-2 py-1.5 outline-none focus:border-accent"
-        />
+        <input name={name} defaultValue={value} style={width ? { width } : undefined} />
       )}
+      {hint && <span className="hint">{hint}</span>}
     </div>
   );
 }
@@ -41,42 +36,74 @@ export default async function SettingsPage() {
   const s = await getSettings();
 
   return (
-    <div className="max-w-3xl">
-      <h1 className="mb-1 font-serif text-2xl font-bold text-neutral-900">设置</h1>
-      <p className="mb-5 text-sm text-neutral-500">站点信息、报头文案、关于页内容。</p>
+    <>
+      <div className="row2">
+        <div className="panel">
+          <div className="h">
+            <h2>站点信息（报头三行）</h2>
+          </div>
+          <div className="b">
+            <form action={saveSettings}>
+              <Field name="masthead.kicker" label="上标 Kicker" value={s["masthead.kicker"]} />
+              <Field name="masthead.title" label="站点标题" value={s["masthead.title"]} />
+              <Field name="masthead.subtitle" label="副标题" value={s["masthead.subtitle"]} />
+              <Field name="home.postCount" label="首页文章数" value={s["home.postCount"]} width={90} />
+              <button className="btn primary">保存</button>
+            </form>
+          </div>
+        </div>
 
-      <form action={saveSettings} className="space-y-6">
-        <section className="space-y-3 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-600">
-            站点
-          </h2>
-          <Field name="site.name" label="站点名称" value={s["site.name"]} />
-          <Field name="site.subtitle" label="副标题" value={s["site.subtitle"]} />
-          <Field name="home.postCount" label="首页文章数" value={s["home.postCount"]} />
-        </section>
+        <div className="panel">
+          <div className="h">
+            <h2>外观</h2>
+          </div>
+          <div className="b">
+            <form action={saveSettings}>
+              <AccentPicker initial={s["appearance.accent"]} />
+              <div className="fld">
+                <label>背景纸色</label>
+                <div className="colorrow">
+                  <span className="swatch" style={{ background: "#faf7f1" }} />
+                  <input name="appearance.paper" defaultValue={s["appearance.paper"]} style={{ width: 120 }} />
+                </div>
+              </div>
+              <div className="fld">
+                <label>传送门默认展示位置</label>
+                <input name="portal.placement" defaultValue={s["portal.placement"]} />
+                <span className="hint">sidebar 或 footer</span>
+              </div>
+              <button className="btn primary">保存</button>
+            </form>
+          </div>
+        </div>
+      </div>
 
-        <section className="space-y-3 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-600">
-            报头（首页顶部三行）
-          </h2>
-          <Field name="masthead.kicker" label="上标（kicker）" value={s["masthead.kicker"]} />
-          <Field name="masthead.title" label="主标题" value={s["masthead.title"]} />
-          <Field name="masthead.subtitle" label="副标题" value={s["masthead.subtitle"]} />
-        </section>
+      <div className="row2">
+        <div className="panel">
+          <div className="h">
+            <h2>关于页内容（Markdown）</h2>
+          </div>
+          <div className="b">
+            <form action={saveSettings}>
+              <Field name="about.content" label="正文" value={s["about.content"]} textarea rows={6} hint="前台「关于」页将渲染这段 Markdown。" />
+              <button className="btn primary">保存</button>
+            </form>
+          </div>
+        </div>
 
-        <section className="space-y-3 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-600">
-            关于页
-          </h2>
-          <Field name="about.content" label="正文（Markdown）" value={s["about.content"]} textarea rows={8} />
-          <Field name="about.contact" label="联系方式" value={s["about.contact"]} />
-          <Field name="about.colophon" label="Colophon（页脚说明）" value={s["about.colophon"]} />
-        </section>
-
-        <button className="bg-accent px-5 py-2.5 text-white hover:bg-accent-2">
-          保存设置
-        </button>
-      </form>
-    </div>
+        <div className="panel">
+          <div className="h">
+            <h2>联系方式 / Colophon</h2>
+          </div>
+          <div className="b">
+            <form action={saveSettings}>
+              <Field name="about.contact" label="联系方式" value={s["about.contact"]} />
+              <Field name="about.colophon" label="Colophon（页脚说明）" value={s["about.colophon"]} />
+              <button className="btn primary">保存</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
