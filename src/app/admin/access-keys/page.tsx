@@ -10,6 +10,14 @@ function toLocalInput(d: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+function safeDecrypt(enc: string): string {
+  try {
+    return decryptSecret(enc);
+  } catch {
+    return "";
+  }
+}
+
 export default async function AccessKeysPage() {
   const [keys, posts] = await Promise.all([
     prisma.accessKey.findMany({
@@ -34,10 +42,12 @@ export default async function AccessKeysPage() {
       </div>
 
       {keys.map((k) => {
+        const plain = safeDecrypt(k.secretEnc);
+        const decryptFailed = plain === "";
         const init: AccessKeyInit = {
           id: k.id,
           label: k.label ?? "",
-          secret: decryptSecret(k.secretEnc),
+          secret: plain,
           note: k.note ?? "",
           maxUses: k.maxUses === null ? "" : String(k.maxUses),
           validUntil: k.validUntil ? toLocalInput(k.validUntil) : "",
@@ -55,6 +65,9 @@ export default async function AccessKeysPage() {
                 {k.maxUses === null ? "" : ` / ${k.maxUses}`} 次 · 覆盖 {k.posts.length} 篇
                 {k.validUntil ? ` · 截止 ${k.validUntil.toLocaleString("zh-CN")}` : ""}
               </span>
+              {decryptFailed && (
+                <span style={{ fontSize: 12, color: "#c0392b" }}>无法解密（AUTH_SECRET 可能已更换）</span>
+              )}
               <form action={resetUsage}>
                 <input type="hidden" name="id" value={k.id} />
                 <button type="submit" className="btn sm">重置次数</button>
