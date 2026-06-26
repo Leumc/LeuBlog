@@ -1070,3 +1070,60 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   .tg-row { grid-template-columns: 1fr; gap: 8px; }
   nav.main .wrap { flex-wrap: wrap; gap: 18px; }
 }
+
+/* 访问许可门禁 */
+.gate {
+  max-width: 640px;
+  padding: 60px 0 80px;
+  text-align: center;
+}
+.gate .gate-lock {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.gate h1 {
+  font-size: 26px;
+  margin: 0 0 18px;
+}
+.gate-note {
+  white-space: pre-line;
+  text-align: left;
+  color: var(--soft);
+  background: var(--card, rgba(127, 127, 127, 0.06));
+  border: 1px solid var(--aline, rgba(127, 127, 127, 0.2));
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  line-height: 1.7;
+}
+.gate-form {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.gate-form input[type="password"] {
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+  padding: 9px 12px;
+  border: 1px solid var(--aline, rgba(127, 127, 127, 0.3));
+  border-radius: 6px;
+  font-size: 15px;
+}
+.gate-err {
+  flex-basis: 100%;
+  color: #c0392b;
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+.key-note {
+  white-space: pre-line;
+  background: var(--card, rgba(127, 127, 127, 0.06));
+  border: 1px solid var(--aline, rgba(127, 127, 127, 0.2));
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  color: var(--soft);
+}
