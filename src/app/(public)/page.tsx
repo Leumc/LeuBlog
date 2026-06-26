@@ -41,7 +41,10 @@ export default async function HomePage() {
             <article className="entry" key={p.id}>
               <span className="cat">{catLabel}</span>
               <h2>
-                <Link href={`/posts/${p.slug}`}>{p.title}</Link>
+                <Link href={`/posts/${p.slug}`}>
+                  {p.locked && <span title="需要密钥">🔒 </span>}
+                  {p.title}
+                </Link>
               </h2>
               <div className="meta">
                 {p.publishedAt && <>{formatDate(p.publishedAt)} · </>}

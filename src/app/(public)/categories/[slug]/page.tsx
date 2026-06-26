@@ -123,7 +123,10 @@ export default async function CategoryDetailPage({
                 <div className="top">{p.tags[0]?.name ?? p.category?.name}</div>
               )}
               <h3>
-                <Link href={`/posts/${p.slug}`}>{p.title}</Link>
+                <Link href={`/posts/${p.slug}`}>
+                  {p.locked && <span title="需要密钥">🔒 </span>}
+                  {p.title}
+                </Link>
               </h3>
               <div className="meta">
                 {p.publishedAt && <>{formatDate(p.publishedAt)} · </>}
