@@ -88,3 +88,12 @@ export async function deleteTag(formData: FormData): Promise<void> {
   await prisma.tag.delete({ where: { id: String(formData.get("id") || "") } });
   rv();
 }
+
+export async function assignTagGroup(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const tagId = String(formData.get("tagId") || "");
+  const tagGroupId = String(formData.get("tagGroupId") || "");
+  if (!tagId || !tagGroupId) return;
+  await prisma.tag.update({ where: { id: tagId }, data: { tagGroupId } });
+  rv();
+}
