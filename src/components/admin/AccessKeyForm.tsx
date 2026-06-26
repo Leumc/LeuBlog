@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { createAccessKey, updateAccessKey } from "@/app/admin/access-keys/actions";
 
-export type PostOption = { id: string; title: string };
-
 export type AccessKeyInit = {
   id: string;
   label: string;
@@ -13,7 +11,6 @@ export type AccessKeyInit = {
   maxUses: string; // "" = 不限
   validUntil: string; // datetime-local 值，"" = 不过期
   active: boolean;
-  postIds: string[];
 };
 
 const CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 去掉易混字符
@@ -24,20 +21,10 @@ function randomSecret(len = 10): string {
   return Array.from(arr, (n) => CHARSET[n % CHARSET.length]).join("");
 }
 
-export default function AccessKeyForm({
-  init,
-  posts,
-}: {
-  init?: AccessKeyInit;
-  posts: PostOption[];
-}) {
+export default function AccessKeyForm({ init }: { init?: AccessKeyInit }) {
   const editing = Boolean(init?.id);
   const [secret, setSecret] = useState(init?.secret ?? "");
   const [reveal, setReveal] = useState(false);
-  const [postIds, setPostIds] = useState<string[]>(init?.postIds ?? []);
-
-  const toggle = (id: string) =>
-    setPostIds((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
 
   return (
     <form action={editing ? updateAccessKey : createAccessKey} className="b">
@@ -89,28 +76,6 @@ export default function AccessKeyForm({
             <input type="checkbox" name="active" defaultChecked={init ? init.active : true} />
             启用
           </label>
-        </div>
-      </div>
-
-      <div className="fld">
-        <label>可解锁哪些文章</label>
-        {posts.length === 0 && (
-          <p style={{ fontSize: 13, color: "var(--amuted)" }}>暂无已发布文章。</p>
-        )}
-        <div style={{ maxHeight: 220, overflow: "auto", border: "1px solid var(--aline)", borderRadius: 6, padding: 8 }}>
-          {posts.map((p) => (
-            <label key={p.id} style={{ display: "block", fontSize: 13, padding: "3px 0", cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                name="postIds"
-                value={p.id}
-                checked={postIds.includes(p.id)}
-                onChange={() => toggle(p.id)}
-                style={{ marginRight: 6 }}
-              />
-              {p.title}
-            </label>
-          ))}
         </div>
       </div>
 

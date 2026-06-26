@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { decryptSecret } from "@/lib/access-keys";
-import { deleteAccessKey, resetUsage } from "./actions";
-import AccessKeyForm, { type AccessKeyInit, type PostOption } from "@/components/admin/AccessKeyForm";
+import AccessKeyForm, { type AccessKeyInit } from "@/components/admin/AccessKeyForm";
+import AccessKeyCard from "@/components/admin/AccessKeyCard";
 
 export const dynamic = "force-dynamic";
 
@@ -19,18 +19,10 @@ function safeDecrypt(enc: string): string {
 }
 
 export default async function AccessKeysPage() {
-  const [keys, posts] = await Promise.all([
-    prisma.accessKey.findMany({
-      orderBy: { createdAt: "desc" },
-      include: { posts: { select: { id: true } } },
-    }),
-    prisma.post.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { publishedAt: "desc" },
-      select: { id: true, title: true },
-    }),
-  ]);
-  const postOptions: PostOption[] = posts;
+  const keys = await prisma.accessKey.findMany({
+    include: { posts: { select: { id: true, title: true } } },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div>
@@ -38,7 +30,7 @@ export default async function AccessKeysPage() {
         <div className="h">
           <h2>新建访问密钥</h2>
         </div>
-        <AccessKeyForm posts={postOptions} />
+        <AccessKeyForm />
       </div>
 
       {keys.map((k) => {
@@ -52,33 +44,18 @@ export default async function AccessKeysPage() {
           maxUses: k.maxUses === null ? "" : String(k.maxUses),
           validUntil: k.validUntil ? toLocalInput(k.validUntil) : "",
           active: k.active,
-          postIds: k.posts.map((p) => p.id),
         };
         return (
-          <div className="panel" key={k.id}>
-            <div className="h" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <h2 style={{ margin: 0 }}>
-                {k.label || "（未命名密钥）"} {k.active ? "" : "· 已停用"}
-              </h2>
-              <span style={{ fontSize: 12, color: "var(--amuted)", marginLeft: "auto" }}>
-                已用 {k.usedCount}
-                {k.maxUses === null ? "" : ` / ${k.maxUses}`} 次 · 覆盖 {k.posts.length} 篇
-                {k.validUntil ? ` · 截止 ${k.validUntil.toLocaleString("zh-CN")}` : ""}
-              </span>
-              {decryptFailed && (
-                <span style={{ fontSize: 12, color: "#c0392b" }}>无法解密（AUTH_SECRET 可能已更换）</span>
-              )}
-              <form action={resetUsage}>
-                <input type="hidden" name="id" value={k.id} />
-                <button type="submit" className="btn sm">重置次数</button>
-              </form>
-              <form action={deleteAccessKey}>
-                <input type="hidden" name="id" value={k.id} />
-                <button type="submit" className="btn sm danger">删除</button>
-              </form>
-            </div>
-            <AccessKeyForm init={init} posts={postOptions} />
-          </div>
+          <AccessKeyCard
+            key={k.id}
+            init={init}
+            usedCount={k.usedCount}
+            maxUses={k.maxUses}
+            active={k.active}
+            decryptFailed={decryptFailed}
+            validityLabel={k.validUntil ? `截止 ${k.validUntil.toLocaleString("zh-CN")}` : ""}
+            posts={k.posts}
+          />
         );
       })}
     </div>

@@ -83,4 +83,5 @@ export async function revokeCoverage(formData: FormData): Promise<void> {
     data: { posts: { disconnect: { id: postId } } },
   });
   revalidatePath("/admin/access-keys");
+  revalidatePath("/");
 }
