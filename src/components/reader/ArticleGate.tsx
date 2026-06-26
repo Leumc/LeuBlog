@@ -19,7 +19,7 @@ export default function ArticleGate({
 
   return (
     <div className="wrap gate">
-      <div className="gate-lock">🔒</div>
+      <div className="gate-lock">⊘</div>
       <h1>{title}</h1>
       <div className="gate-note">
         {note ? note : "本文需要访问许可密钥才能阅读。"}

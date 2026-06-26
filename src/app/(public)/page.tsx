@@ -42,7 +42,7 @@ export default async function HomePage() {
               <span className="cat">{catLabel}</span>
               <h2>
                 <Link href={`/posts/${p.slug}`}>
-                  {p.locked && <span title="需要密钥">🔒 </span>}
+                  {p.locked && <span title="需要密钥">⊘ </span>}
                   {p.title}
                 </Link>
               </h2>

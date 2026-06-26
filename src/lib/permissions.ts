@@ -64,7 +64,7 @@ export function navForRole(role: SessionUser["role"]): NavSection[] {
       items: [
         { label: "用户", href: "/admin/users", icon: "☺" },
         { label: "设置", href: "/admin/settings", icon: "⚙" },
-        { label: "访问密钥", href: "/admin/access-keys", icon: "🔒" },
+        { label: "访问密钥", href: "/admin/access-keys", icon: "⊘" },
       ],
     },
   ];
