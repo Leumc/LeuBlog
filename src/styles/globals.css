@@ -1200,8 +1200,13 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   background: #fafbfc;
 }
 .admin .keypick > input[type="checkbox"] {
-  margin: 0;
   flex: none;
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border-radius: 3px;
 }
 .admin .keypick-main {
   display: flex;
