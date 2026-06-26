@@ -35,6 +35,9 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
         gateNote: String(formData.get("gateNote") || "").trim() || null,
       }
     : {};
+  const keyIds = isAdmin
+    ? (JSON.parse(String(formData.get("keyIds") || "[]")) as string[])
+    : [];
 
   if (!title) throw new Error("标题不能为空");
 
@@ -61,6 +64,7 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
           status === "PUBLISHED" && !wasPublished ? new Date() : post.publishedAt,
         tags: { set: tagIds.map((t) => ({ id: t })) },
         ...lockFields,
+        ...(isAdmin ? { accessKeys: { set: keyIds.map((id) => ({ id })) } } : {}),
       },
     });
   } else {
@@ -77,6 +81,7 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
         authorId: user.id,
         tags: { connect: tagIds.map((t) => ({ id: t })) },
         ...lockFields,
+        ...(isAdmin ? { accessKeys: { connect: keyIds.map((id) => ({ id })) } } : {}),
       },
     });
   }

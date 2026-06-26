@@ -6,10 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/permissions";
 import { encryptSecret } from "@/lib/access-keys";
 
-function parsePostIds(fd: FormData): string[] {
-  return fd.getAll("postIds").map(String).filter(Boolean);
-}
-
 function parseMaxUses(v: FormDataEntryValue | null): number | null {
   const s = String(v || "").trim();
   if (!s) return null;
@@ -36,7 +32,6 @@ export async function createAccessKey(formData: FormData): Promise<void> {
       maxUses: parseMaxUses(formData.get("maxUses")),
       validUntil: parseValidUntil(formData.get("validUntil")),
       active: formData.get("active") === "on",
-      posts: { connect: parsePostIds(formData).map((id) => ({ id })) },
     },
   });
   revalidatePath("/admin/access-keys");
@@ -57,7 +52,6 @@ export async function updateAccessKey(formData: FormData): Promise<void> {
       maxUses: parseMaxUses(formData.get("maxUses")),
       validUntil: parseValidUntil(formData.get("validUntil")),
       active: formData.get("active") === "on",
-      posts: { set: parsePostIds(formData).map((id) => ({ id })) },
     },
   });
   revalidatePath("/admin/access-keys");
@@ -75,6 +69,18 @@ export async function resetUsage(formData: FormData): Promise<void> {
   await prisma.accessKey.update({
     where: { id: String(formData.get("id") || "") },
     data: { usedCount: 0 },
+  });
+  revalidatePath("/admin/access-keys");
+}
+
+export async function revokeCoverage(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const keyId = String(formData.get("keyId") || "");
+  const postId = String(formData.get("postId") || "");
+  if (!keyId || !postId) return;
+  await prisma.accessKey.update({
+    where: { id: keyId },
+    data: { posts: { disconnect: { id: postId } } },
   });
   revalidatePath("/admin/access-keys");
 }

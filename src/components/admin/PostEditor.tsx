@@ -20,6 +20,7 @@ export type EditorPost = {
   tagIds: string[];
   locked: boolean;
   gateNote: string;
+  keyIds: string[];
 };
 
 export type Taxonomy = {
@@ -33,11 +34,13 @@ export default function PostEditor({
   categories,
   taxonomy,
   canLock,
+  allKeys,
 }: {
   post: EditorPost;
   categories: { id: string; name: string }[];
   taxonomy: Taxonomy;
   canLock: boolean;
+  allKeys: { id: string; label: string }[];
 }) {
   const [title, setTitle] = useState(post.title);
   const [slug, setSlug] = useState(post.slug);
@@ -45,6 +48,7 @@ export default function PostEditor({
   const [content, setContent] = useState(post.content);
   const [categoryId, setCategoryId] = useState(post.categoryId ?? "");
   const [tagIds, setTagIds] = useState<string[]>(post.tagIds);
+  const [keyIds, setKeyIds] = useState<string[]>(post.keyIds);
   const [locked, setLocked] = useState(post.locked);
   const [gateNote, setGateNote] = useState(post.gateNote);
   const [previewHtml, setPreviewHtml] = useState("");
@@ -104,6 +108,9 @@ export default function PostEditor({
   const toggleTag = (id: string) =>
     setTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
 
+  const toggleKey = (id: string) =>
+    setKeyIds((prev) => (prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]));
+
   return (
     <form action={savePostAsDraft}>
       {post.id && <input type="hidden" name="id" value={post.id} />}
@@ -114,6 +121,7 @@ export default function PostEditor({
       <input type="hidden" name="excerpt" value={excerpt} />
       {canLock && <input type="hidden" name="locked" value={locked ? "true" : "false"} />}
       {canLock && <input type="hidden" name="gateNote" value={gateNote} />}
+      {canLock && <input type="hidden" name="keyIds" value={JSON.stringify(keyIds)} />}
 
       <div className="panel">
         <div className="ed-titlerow">
@@ -308,6 +316,28 @@ export default function PostEditor({
                 onChange={(e) => setGateNote(e.target.value)}
                 rows={4}
               />
+            </div>
+            <div className="fld" style={{ marginTop: 12 }}>
+              <label>可用于解锁本文的密钥</label>
+              {allKeys.length === 0 ? (
+                <p style={{ fontSize: 12, color: "var(--amuted)", marginTop: 4 }}>
+                  还没有密钥，请先在「访问密钥」页创建
+                </p>
+              ) : (
+                <div style={{ marginTop: 4 }}>
+                  {allKeys.map((k) => (
+                    <label key={k.id} style={{ marginRight: 12, fontSize: 13, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={keyIds.includes(k.id)}
+                        onChange={() => toggleKey(k.id)}
+                        style={{ marginRight: 4 }}
+                      />
+                      {k.label || "（未命名密钥）"}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
             <p style={{ fontSize: 12, color: "var(--amuted)", marginTop: 8 }}>
               密钥在「访问密钥」页管理。上锁但无任何启用密钥覆盖的文章，读者将无法解锁。
