@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { renderMarkdown, extractToc } from "@/lib/markdown";
 import { formatDate, formatViews } from "@/lib/utils";
+import ArticleGate from "@/components/reader/ArticleGate";
+import { readUnlocks } from "@/lib/unlock-cookie";
 
 export const dynamic = "force-dynamic";
 import ArticleBody from "@/components/reader/ArticleBody";
@@ -32,6 +34,22 @@ export default async function PostPage({
     include: { author: true, category: true, tags: true },
   });
   if (!post) notFound();
+
+  // 访问许可门禁：上锁且未解锁 → 不渲染正文，仅展示密钥输入界面
+  const unlocks = await readUnlocks();
+  const entry = unlocks[post.id];
+  if (post.locked && !entry) {
+    return <ArticleGate slug={post.slug} title={post.title} note={post.gateNote} />;
+  }
+  // 已解锁：若解锁所用密钥有说明，正文顶部展示
+  let keyNote: string | null = null;
+  if (post.locked && entry) {
+    const k = await prisma.accessKey.findUnique({
+      where: { id: entry.k },
+      select: { note: true },
+    });
+    keyNote = k?.note ?? null;
+  }
 
   const html = await renderMarkdown(post.content);
   const toc = extractToc(post.content);
@@ -62,6 +80,7 @@ export default async function PostPage({
     <div className="wrap layout-post" style={{ maxWidth: 1100 }}>
       <ViewTracker slug={post.slug} />
       <article>
+        {keyNote && <div className="key-note">{keyNote}</div>}
         <div className="post-crumb">
           <Link href="/">首页</Link>
           {post.category && (

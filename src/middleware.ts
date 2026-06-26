@@ -9,6 +9,7 @@ const ADMIN_ONLY = [
   "/admin/taxonomy",
   "/admin/users",
   "/admin/settings",
+  "/admin/access-keys",
 ];
 
 export async function middleware(req: NextRequest) {

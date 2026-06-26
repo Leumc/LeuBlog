@@ -54,6 +54,8 @@ model Post {
   coverImage  String?
   status      PostStatus @default(DRAFT)
   viewCount   Int        @default(0)
+  locked      Boolean    @default(false)
+  gateNote    String?    // 解锁界面展示的文章级说明
   publishedAt DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -63,6 +65,7 @@ model Post {
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
   tags       Tag[]     @relation("PostTags")
+  accessKeys AccessKey[] @relation("KeyPosts")
 
   @@index([status, publishedAt])
   @@index([authorId])
@@ -157,4 +160,22 @@ model DailyView {
   @@unique([date, postId])
   @@index([postId])
   @@index([date])
+}
+
+// 文章访问许可密钥
+model AccessKey {
+  id         String    @id @default(cuid())
+  label      String?   // 后台备注名
+  secretEnc  String    // AES-256-GCM 加密后的密钥明文
+  note       String?   // 密钥级说明（解锁成功后展示）
+  maxUses    Int?      // 最大使用次数，null=不限
+  usedCount  Int       @default(0)
+  validUntil DateTime? // 有效截止，null=不过期
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  posts Post[] @relation("KeyPosts")
+
+  @@index([active])
 }

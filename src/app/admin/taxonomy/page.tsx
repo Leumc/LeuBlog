@@ -7,6 +7,7 @@ import {
   deleteTagGroup,
   createTag,
   deleteTag,
+  assignTagGroup,
 } from "./actions";
 
 export default async function TaxonomyPage({
@@ -37,6 +38,16 @@ export default async function TaxonomyPage({
         include: { _count: { select: { posts: true } } },
       })
     : [];
+
+  const ungroupedTags = await prisma.tag.findMany({
+    where: { tagGroupId: null },
+    orderBy: { name: "asc" },
+    include: { _count: { select: { posts: true } } },
+  });
+
+  const groupOptions = categories.flatMap((c) =>
+    c.tagGroups.map((g) => ({ id: g.id, label: `${c.name} / ${g.name}` })),
+  );
 
   const catHref = (id: string) => `/admin/taxonomy?cat=${id}`;
   const groupHref = (gid: string) => `/admin/taxonomy?cat=${selCat?.id}&g=${gid}`;
@@ -123,6 +134,43 @@ export default async function TaxonomyPage({
               </form>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="h"><h2>未分组标签</h2></div>
+        <div className="b">
+          <p className="note" style={{ marginBottom: 12 }}>
+            删除标签组后其标签会落到这里。可重新分配到某个标签组，或删除（删除后同名标签即可再次创建）。
+          </p>
+          {ungroupedTags.length === 0 ? (
+            <div className="empty">没有未分组标签</div>
+          ) : (
+            ungroupedTags.map((t) => (
+              <div key={t.id} className="it" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ flex: 1 }}>{t.name}</span>
+                <span className="cnt">{t._count.posts}</span>
+                {groupOptions.length === 0 ? (
+                  <span className="note" style={{ fontSize: 12 }}>请先创建标签组</span>
+                ) : (
+                  <form action={assignTagGroup} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <input type="hidden" name="tagId" value={t.id} />
+                    <select name="tagGroupId" required defaultValue="">
+                      <option value="" disabled>移动到…</option>
+                      {groupOptions.map((o) => (
+                        <option key={o.id} value={o.id}>{o.label}</option>
+                      ))}
+                    </select>
+                    <button className="btn sm">移动</button>
+                  </form>
+                )}
+                <form action={deleteTag} style={{ marginLeft: 6 }}>
+                  <input type="hidden" name="id" value={t.id} />
+                  <button className="rm" title="删除">×</button>
+                </form>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </>

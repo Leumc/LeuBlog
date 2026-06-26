@@ -14,12 +14,18 @@ export default async function EditPostPage({
   const user = (await getSessionUser())!;
   const post = await prisma.post.findUnique({
     where: { id },
-    include: { tags: true },
+    include: { tags: true, accessKeys: { select: { id: true } } },
   });
   if (!post) notFound();
   if (!canEditPost(user, post.authorId)) redirect("/admin/posts");
 
-  const { categories, taxonomy } = await getEditorTaxonomy();
+  const [{ categories, taxonomy }, keys] = await Promise.all([
+    getEditorTaxonomy(),
+    prisma.accessKey.findMany({
+      select: { id: true, label: true, active: true, usedCount: true, maxUses: true, validUntil: true },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   return (
     <PostEditor
@@ -32,9 +38,21 @@ export default async function EditPostPage({
         status: post.status,
         categoryId: post.categoryId,
         tagIds: post.tags.map((t) => t.id),
+        locked: post.locked,
+        gateNote: post.gateNote ?? "",
+        keyIds: post.accessKeys.map((k) => k.id),
       }}
       categories={categories}
       taxonomy={taxonomy}
+      canLock={user.role === "ADMIN"}
+      allKeys={keys.map((k) => ({
+        id: k.id,
+        label: k.label ?? "",
+        active: k.active,
+        usedCount: k.usedCount,
+        maxUses: k.maxUses,
+        validUntil: k.validUntil ? k.validUntil.toLocaleDateString("zh-CN") : null,
+      }))}
     />
   );
 }

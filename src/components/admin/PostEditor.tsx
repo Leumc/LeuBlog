@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { savePostAsDraft, publishPost } from "@/app/admin/posts/post-actions";
 
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), { ssr: false });
@@ -18,6 +18,9 @@ export type EditorPost = {
   status: "DRAFT" | "PUBLISHED";
   categoryId: string | null;
   tagIds: string[];
+  locked: boolean;
+  gateNote: string;
+  keyIds: string[];
 };
 
 export type Taxonomy = {
@@ -30,10 +33,21 @@ export default function PostEditor({
   post,
   categories,
   taxonomy,
+  canLock,
+  allKeys,
 }: {
   post: EditorPost;
   categories: { id: string; name: string }[];
   taxonomy: Taxonomy;
+  canLock: boolean;
+  allKeys: {
+    id: string;
+    label: string;
+    active: boolean;
+    usedCount: number;
+    maxUses: number | null;
+    validUntil: string | null;
+  }[];
 }) {
   const [title, setTitle] = useState(post.title);
   const [slug, setSlug] = useState(post.slug);
@@ -41,6 +55,9 @@ export default function PostEditor({
   const [content, setContent] = useState(post.content);
   const [categoryId, setCategoryId] = useState(post.categoryId ?? "");
   const [tagIds, setTagIds] = useState<string[]>(post.tagIds);
+  const [keyIds, setKeyIds] = useState<string[]>(post.keyIds);
+  const [locked, setLocked] = useState(post.locked);
+  const [gateNote, setGateNote] = useState(post.gateNote);
   const [previewHtml, setPreviewHtml] = useState("");
   const [uploading, setUploading] = useState(false);
   const viewRef = useRef<EditorView | null>(null);
@@ -98,6 +115,9 @@ export default function PostEditor({
   const toggleTag = (id: string) =>
     setTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
 
+  const toggleKey = (id: string) =>
+    setKeyIds((prev) => (prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]));
+
   return (
     <form action={savePostAsDraft}>
       {post.id && <input type="hidden" name="id" value={post.id} />}
@@ -106,6 +126,9 @@ export default function PostEditor({
       <input type="hidden" name="categoryId" value={categoryId} />
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="excerpt" value={excerpt} />
+      {canLock && <input type="hidden" name="locked" value={locked ? "true" : "false"} />}
+      {canLock && <input type="hidden" name="gateNote" value={gateNote} />}
+      {canLock && <input type="hidden" name="keyIds" value={JSON.stringify(keyIds)} />}
 
       <div className="panel">
         <div className="ed-titlerow">
@@ -225,7 +248,7 @@ export default function PostEditor({
           <CodeMirror
             value={content}
             height="520px"
-            extensions={[markdown({ codeLanguages: languages })]}
+            extensions={[markdown({ codeLanguages: languages }), EditorView.lineWrapping]}
             onChange={(v) => setContent(v)}
             onCreateEditor={(view) => {
               viewRef.current = view;
@@ -278,6 +301,70 @@ export default function PostEditor({
           </div>
         </div>
       </div>
+
+      {canLock && (
+        <div className="panel">
+          <div className="h">
+            <h2>访问控制</h2>
+          </div>
+          <div className="b">
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+              <input
+                type="checkbox"
+                checked={locked}
+                onChange={(e) => setLocked(e.target.checked)}
+              />
+              给本文上锁（需输入密钥才能阅读）
+            </label>
+            <div className="fld" style={{ marginTop: 12, maxWidth: 520 }}>
+              <label>解锁界面说明（文章概要 / 为什么上锁 / 密钥获取途径）</label>
+              <textarea
+                value={gateNote}
+                onChange={(e) => setGateNote(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="fld" style={{ marginTop: 12 }}>
+              <label>可用于解锁本文的密钥</label>
+              {allKeys.length === 0 ? (
+                <p style={{ fontSize: 12, color: "var(--amuted)", marginTop: 4 }}>
+                  还没有密钥，请先在「访问密钥」页创建
+                </p>
+              ) : (
+                <div className="keypick-list">
+                  {allKeys.map((k) => {
+                    const checked = keyIds.includes(k.id);
+                    return (
+                      <label key={k.id} className={`keypick${checked ? " on" : ""}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleKey(k.id)}
+                        />
+                        <span className="keypick-main">
+                          <span className="keypick-name">
+                            {k.label || "（未命名密钥）"}
+                          </span>
+                          <span className="keypick-meta">
+                            {k.active ? "" : "已停用 · "}
+                            已用 {k.usedCount}
+                            {k.maxUses === null ? "" : ` / ${k.maxUses}`} 次
+                            {k.validUntil ? ` · 截止 ${k.validUntil}` : ""}
+                          </span>
+                        </span>
+                        {checked && <span className="keypick-check">✓</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <p style={{ fontSize: 12, color: "var(--amuted)", marginTop: 8 }}>
+              密钥在「访问密钥」页管理。上锁但无任何启用密钥覆盖的文章，读者将无法解锁。
+            </p>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
