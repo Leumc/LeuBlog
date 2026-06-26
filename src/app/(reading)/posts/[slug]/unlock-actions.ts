@@ -9,6 +9,14 @@ export type UnlockState = { error?: string };
 
 const FAIL = "密钥错误或已失效";
 
+function safeMatch(enc: string, entered: string): boolean {
+  try {
+    return secretsMatch(decryptSecret(enc), entered);
+  } catch {
+    return false;
+  }
+}
+
 export async function unlockPostAction(
   _prev: UnlockState,
   formData: FormData,
@@ -31,7 +39,7 @@ export async function unlockPostAction(
 
   const now = new Date();
   const match = candidates.find(
-    (k) => keyUsable(k, now) && secretsMatch(decryptSecret(k.secretEnc), entered),
+    (k) => keyUsable(k, now) && safeMatch(k.secretEnc, entered),
   );
   if (!match) return { error: FAIL };
 
