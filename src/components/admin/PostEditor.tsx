@@ -40,7 +40,14 @@ export default function PostEditor({
   categories: { id: string; name: string }[];
   taxonomy: Taxonomy;
   canLock: boolean;
-  allKeys: { id: string; label: string }[];
+  allKeys: {
+    id: string;
+    label: string;
+    active: boolean;
+    usedCount: number;
+    maxUses: number | null;
+    validUntil: string | null;
+  }[];
 }) {
   const [title, setTitle] = useState(post.title);
   const [slug, setSlug] = useState(post.slug);
@@ -324,18 +331,31 @@ export default function PostEditor({
                   还没有密钥，请先在「访问密钥」页创建
                 </p>
               ) : (
-                <div style={{ marginTop: 4 }}>
-                  {allKeys.map((k) => (
-                    <label key={k.id} style={{ marginRight: 12, fontSize: 13, cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={keyIds.includes(k.id)}
-                        onChange={() => toggleKey(k.id)}
-                        style={{ marginRight: 4 }}
-                      />
-                      {k.label || "（未命名密钥）"}
-                    </label>
-                  ))}
+                <div className="keypick-list">
+                  {allKeys.map((k) => {
+                    const checked = keyIds.includes(k.id);
+                    return (
+                      <label key={k.id} className={`keypick${checked ? " on" : ""}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleKey(k.id)}
+                        />
+                        <span className="keypick-main">
+                          <span className="keypick-name">
+                            {k.label || "（未命名密钥）"}
+                          </span>
+                          <span className="keypick-meta">
+                            {k.active ? "" : "已停用 · "}
+                            已用 {k.usedCount}
+                            {k.maxUses === null ? "" : ` / ${k.maxUses}`} 次
+                            {k.validUntil ? ` · 截止 ${k.validUntil}` : ""}
+                          </span>
+                        </span>
+                        {checked && <span className="keypick-check">✓</span>}
+                      </label>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -7,7 +7,10 @@ export default async function NewPostPage() {
   const user = (await getSessionUser())!;
   const [{ categories, taxonomy }, keys] = await Promise.all([
     getEditorTaxonomy(),
-    prisma.accessKey.findMany({ select: { id: true, label: true }, orderBy: { createdAt: "desc" } }),
+    prisma.accessKey.findMany({
+      select: { id: true, label: true, active: true, usedCount: true, maxUses: true, validUntil: true },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
   return (
     <PostEditor
@@ -26,7 +29,14 @@ export default async function NewPostPage() {
       categories={categories}
       taxonomy={taxonomy}
       canLock={user.role === "ADMIN"}
-      allKeys={keys.map((k) => ({ id: k.id, label: k.label ?? "" }))}
+      allKeys={keys.map((k) => ({
+        id: k.id,
+        label: k.label ?? "",
+        active: k.active,
+        usedCount: k.usedCount,
+        maxUses: k.maxUses,
+        validUntil: k.validUntil ? k.validUntil.toLocaleDateString("zh-CN") : null,
+      }))}
     />
   );
 }

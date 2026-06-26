@@ -1172,3 +1172,53 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   background: #fafbfc;
   font-size: 12px;
 }
+
+/* 文章编辑页：可用密钥选择列表 */
+.admin .keypick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  max-width: 520px;
+}
+.admin .keypick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--aline);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.admin .keypick:hover {
+  border-color: var(--aaccent);
+  background: #fafbfc;
+}
+.admin .keypick.on {
+  border-color: var(--aaccent);
+  background: #fafbfc;
+}
+.admin .keypick > input[type="checkbox"] {
+  margin: 0;
+  flex: none;
+}
+.admin .keypick-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.admin .keypick-name {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.admin .keypick-meta {
+  font-size: 11.5px;
+  color: var(--amuted);
+}
+.admin .keypick-check {
+  margin-left: auto;
+  color: var(--aaccent);
+  font-weight: 700;
+}
