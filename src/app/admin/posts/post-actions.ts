@@ -28,6 +28,14 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
   const categoryId = String(formData.get("categoryId") || "") || null;
   const tagIds = JSON.parse(String(formData.get("tagIds") || "[]")) as string[];
 
+  const isAdmin = user.role === "ADMIN";
+  const lockFields = isAdmin
+    ? {
+        locked: formData.get("locked") === "true",
+        gateNote: String(formData.get("gateNote") || "").trim() || null,
+      }
+    : {};
+
   if (!title) throw new Error("标题不能为空");
 
   const baseSlug = slugify(slugInput || title);
@@ -52,6 +60,7 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
         publishedAt:
           status === "PUBLISHED" && !wasPublished ? new Date() : post.publishedAt,
         tags: { set: tagIds.map((t) => ({ id: t })) },
+        ...lockFields,
       },
     });
   } else {
@@ -67,6 +76,7 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
         publishedAt: status === "PUBLISHED" ? new Date() : null,
         authorId: user.id,
         tags: { connect: tagIds.map((t) => ({ id: t })) },
+        ...lockFields,
       },
     });
   }

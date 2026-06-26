@@ -18,6 +18,8 @@ export type EditorPost = {
   status: "DRAFT" | "PUBLISHED";
   categoryId: string | null;
   tagIds: string[];
+  locked: boolean;
+  gateNote: string;
 };
 
 export type Taxonomy = {
@@ -30,10 +32,12 @@ export default function PostEditor({
   post,
   categories,
   taxonomy,
+  canLock,
 }: {
   post: EditorPost;
   categories: { id: string; name: string }[];
   taxonomy: Taxonomy;
+  canLock: boolean;
 }) {
   const [title, setTitle] = useState(post.title);
   const [slug, setSlug] = useState(post.slug);
@@ -41,6 +45,8 @@ export default function PostEditor({
   const [content, setContent] = useState(post.content);
   const [categoryId, setCategoryId] = useState(post.categoryId ?? "");
   const [tagIds, setTagIds] = useState<string[]>(post.tagIds);
+  const [locked, setLocked] = useState(post.locked);
+  const [gateNote, setGateNote] = useState(post.gateNote);
   const [previewHtml, setPreviewHtml] = useState("");
   const [uploading, setUploading] = useState(false);
   const viewRef = useRef<EditorView | null>(null);
@@ -106,6 +112,8 @@ export default function PostEditor({
       <input type="hidden" name="categoryId" value={categoryId} />
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="excerpt" value={excerpt} />
+      {canLock && <input type="hidden" name="locked" value={locked ? "true" : "false"} />}
+      {canLock && <input type="hidden" name="gateNote" value={gateNote} />}
 
       <div className="panel">
         <div className="ed-titlerow">
@@ -278,6 +286,35 @@ export default function PostEditor({
           </div>
         </div>
       </div>
+
+      {canLock && (
+        <div className="panel">
+          <div className="h">
+            <h2>访问控制</h2>
+          </div>
+          <div className="b">
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+              <input
+                type="checkbox"
+                checked={locked}
+                onChange={(e) => setLocked(e.target.checked)}
+              />
+              给本文上锁（需输入密钥才能阅读）
+            </label>
+            <div className="fld" style={{ marginTop: 12, maxWidth: 520 }}>
+              <label>解锁界面说明（文章概要 / 为什么上锁 / 密钥获取途径）</label>
+              <textarea
+                value={gateNote}
+                onChange={(e) => setGateNote(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <p style={{ fontSize: 12, color: "var(--amuted)", marginTop: 8 }}>
+              密钥在「访问密钥」页管理。上锁但无任何启用密钥覆盖的文章，读者将无法解锁。
+            </p>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

@@ -32,9 +32,12 @@ export default async function EditPostPage({
         status: post.status,
         categoryId: post.categoryId,
         tagIds: post.tags.map((t) => t.id),
+        locked: post.locked,
+        gateNote: post.gateNote ?? "",
       }}
       categories={categories}
       taxonomy={taxonomy}
+      canLock={user.role === "ADMIN"}
     />
   );
 }
