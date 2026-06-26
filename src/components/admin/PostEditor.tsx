@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { savePostAsDraft, publishPost } from "@/app/admin/posts/post-actions";
 
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), { ssr: false });
@@ -233,7 +233,7 @@ export default function PostEditor({
           <CodeMirror
             value={content}
             height="520px"
-            extensions={[markdown({ codeLanguages: languages })]}
+            extensions={[markdown({ codeLanguages: languages }), EditorView.lineWrapping]}
             onChange={(v) => setContent(v)}
             onCreateEditor={(view) => {
               viewRef.current = view;
