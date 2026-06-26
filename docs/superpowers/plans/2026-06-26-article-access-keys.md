@@ -1327,7 +1327,62 @@ git commit -m "feat: 列表页上锁文章 🔒 角标"
 
 ---
 
-### Task 10: 端到端验证
+### Task 10: 后台文章编辑器自动换行
+
+**Files:**
+- Modify: `src/components/admin/PostEditor.tsx`
+
+**Interfaces:**
+- Consumes: `@codemirror/view` 的 `EditorView`（现为 type-only 引入，改为值引入）。
+- Produces: 编辑器开启长行自动换行（不再横向滚动）。
+
+- [ ] **Step 1: 改为值引入 EditorView**
+
+Modify `src/components/admin/PostEditor.tsx`，把：
+
+```tsx
+import type { EditorView } from "@codemirror/view";
+```
+
+改为（去掉 `type`，因为需要在运行时用 `EditorView.lineWrapping`；该标识符仍可同时用作类型注解）：
+
+```tsx
+import { EditorView } from "@codemirror/view";
+```
+
+- [ ] **Step 2: 给编辑器加 lineWrapping 扩展**
+
+把 `<CodeMirror ... />` 的：
+
+```tsx
+            extensions={[markdown({ codeLanguages: languages })]}
+```
+
+改为：
+
+```tsx
+            extensions={[markdown({ codeLanguages: languages }), EditorView.lineWrapping]}
+```
+
+- [ ] **Step 3: 构建校验**
+
+Run: `npm run build`
+Expected: 构建成功。
+
+- [ ] **Step 4: 手动确认**
+
+`npm run dev` → 进入文章编辑页 → 在 Markdown 源输入一行超长文本 → 应自动换行显示，无横向滚动条。
+
+- [ ] **Step 5: 提交**
+
+```bash
+git add src/components/admin/PostEditor.tsx
+git commit -m "feat: 后台文章编辑器长行自动换行"
+```
+
+---
+
+### Task 11: 端到端验证
 
 **Files:** 无（验证任务）
 
