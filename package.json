@@ -10,25 +10,27 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@codemirror/lang-markdown": "^6.3.1",
+    "@codemirror/language-data": "^6.5.1",
     "@prisma/client": "^6.2.1",
     "@uiw/codemirror-theme-github": "^4.23.7",
     "@uiw/react-codemirror": "^4.23.7",
-    "@codemirror/lang-markdown": "^6.3.1",
-    "@codemirror/language-data": "^6.5.1",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "github-slugger": "^2.0.0",
     "jose": "^5.9.6",
     "katex": "^0.16.11",
     "next": "^15.1.6",
-    "react": "^19.0.0",
     "prisma": "^6.2.1",
+    "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rehype-katex": "^7.0.1",
     "rehype-pretty-code": "^0.14.0",
@@ -50,6 +52,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.9"
   }
 }
