@@ -47,6 +47,12 @@ export default async function SettingsPage() {
               <Field name="masthead.kicker" label="上标 Kicker" value={s["masthead.kicker"]} />
               <Field name="masthead.title" label="站点标题" value={s["masthead.title"]} />
               <Field name="masthead.subtitle" label="副标题" value={s["masthead.subtitle"]} />
+              <Field
+                name="author.adminName"
+                label="管理员显示名"
+                value={s["author.adminName"]}
+                hint="文章作者为管理员时显示「<该名称>（管理员）」；留空则用作者本名"
+              />
               <Field name="home.postCount" label="首页文章数" value={s["home.postCount"]} width={90} />
               <button className="btn primary">保存</button>
             </form>

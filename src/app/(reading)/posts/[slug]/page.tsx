@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { renderMarkdown, extractToc } from "@/lib/markdown";
 import { formatDate, formatViews } from "@/lib/utils";
+import { getSetting } from "@/lib/settings";
 import ArticleGate from "@/components/reader/ArticleGate";
 import { readUnlocks } from "@/lib/unlock-cookie";
 
@@ -55,6 +56,13 @@ export default async function PostPage({
   const toc = extractToc(post.content);
   const readMin = Math.max(1, Math.round(post.content.length / 400));
 
+  // 作者为管理员时显示「<设置的管理员名 或 作者本名>（管理员）」
+  const adminName = await getSetting("author.adminName");
+  const authorLabel =
+    post.author.role === "ADMIN"
+      ? `${adminName.trim() || post.author.displayName}（管理员）`
+      : post.author.displayName;
+
   const [prev, next] = await Promise.all([
     post.publishedAt
       ? prisma.post.findFirst({
@@ -95,7 +103,7 @@ export default async function PostPage({
         <div className="post-meta">
           {post.publishedAt && <span>{formatDate(post.publishedAt)}</span>}
           <span>
-            作者 <b>{post.author.displayName}</b>
+            作者 <b>{authorLabel}</b>
           </span>
           <span>阅读时长 {readMin} 分钟</span>
           <span className="v">阅读 {formatViews(post.viewCount)}</span>
