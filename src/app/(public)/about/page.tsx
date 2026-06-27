@@ -57,12 +57,18 @@ export default async function AboutPage() {
               .split(/\r?\n/)
               .map((line) => line.trim())
               .filter(Boolean)
-              .map((line, i) => (
-                <div className="contact" key={i}>
-                  <span className="k">联系</span>
-                  <span>{line}</span>
-                </div>
-              ))}
+              .map((line, i) => {
+                // 每行「键：值」（半/全角冒号均可），仅按首个冒号拆分，值里允许含冒号（如 URL）
+                const m = line.match(/^([^:：]+?)\s*[:：]\s*(.*)$/);
+                const k = m ? m[1].trim() : "";
+                const v = m ? m[2].trim() : line;
+                return (
+                  <div className="contact" key={i}>
+                    {k && <span className="k">{k}</span>}
+                    <span>{v}</span>
+                  </div>
+                );
+              })}
           </div>
 
           <SidebarPortals />

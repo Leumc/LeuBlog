@@ -103,7 +103,7 @@ export default async function SettingsPage() {
                 value={s["about.contact"]}
                 textarea
                 rows={3}
-                hint="每行一条，可填写多条（换行分隔）"
+                hint="每行一条「键：值」，如 邮箱：admin@x.com、GitHub：github.com/you"
               />
               <Field
                 name="about.colophon"
