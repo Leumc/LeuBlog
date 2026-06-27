@@ -67,7 +67,7 @@ export default async function AboutPage() {
           <SidebarPortals />
 
           <div className="block">
-            <div className="s-label">本站构建</div>
+            <div className="s-label">补充信息</div>
             <div className="colophon">{s["about.colophon"]}</div>
           </div>
         </aside>
