@@ -11,23 +11,20 @@ import {
 const TEXT_TAGS = new Set(["P", "H1", "H2", "H3", "H4", "UL", "OL", "BLOCKQUOTE"]);
 const TYPE_SPEED_MS = 18;
 
-type TextNodeRec = { node: Text; full: string };
+/** 一个被拆为「已打出 / 待打出」两段的文本节点，待打出段透明占位以锁定布局。 */
+type TwPart = { on: HTMLElement; off: HTMLElement; full: string };
 type TwState = {
-  el: HTMLElement;
-  nodes: TextNodeRec[];
+  parts: TwPart[];
   caret: HTMLElement | null;
   timers: Set<number>;
-  started: boolean;
-  done: boolean;
 };
 
-function collectTextNodes(el: HTMLElement): TextNodeRec[] {
+function collectTextNodes(el: HTMLElement): Text[] {
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  const out: TextNodeRec[] = [];
+  const out: Text[] = [];
   let n = walker.nextNode();
   while (n) {
-    const full = n.nodeValue ?? "";
-    if (full.length) out.push({ node: n as Text, full });
+    if ((n.nodeValue ?? "").length) out.push(n as Text);
     n = walker.nextNode();
   }
   return out;
@@ -98,54 +95,69 @@ export default function ArticleBody({ html }: { html: string }) {
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    const body = root; // root 自身即 .body
-    const blocks = Array.from(body.children) as HTMLElement[];
+    const blocks = Array.from(root.children) as HTMLElement[];
 
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
     let observer: IntersectionObserver | null = null;
+    let rafId = 0;
+    const startTimers = new Set<number>();
     const twStates = new Map<HTMLElement, TwState>();
 
-    /** 把某块还原为完整可见态（清类、清打字定时器、补回文本、移除 caret）。 */
+    /** 把某块还原为完整可见态。 */
     const resetBlock = (el: HTMLElement) => {
       el.classList.remove("reveal", "reveal-in", "typing", "tw-pending");
+      el.style.transitionDelay = "";
       const st = twStates.get(el);
       if (st) {
         st.timers.forEach((t) => clearTimeout(t));
-        st.timers.clear();
-        st.nodes.forEach((r) => (r.node.nodeValue = r.full));
-        if (st.caret) {
-          st.caret.remove();
-          st.caret = null;
-        }
+        st.caret?.remove();
+        // 把拆开的 on/off 两段合回单个原始文本节点
+        st.parts.forEach((p) => {
+          const parent = p.off.parentNode;
+          if (parent) {
+            parent.replaceChild(document.createTextNode(p.full), p.off);
+            p.on.remove();
+          }
+        });
         twStates.delete(el);
       }
     };
 
     /** 拆掉当前模式的所有副作用，恢复全部块为可见。 */
     const teardown = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      startTimers.forEach((t) => clearTimeout(t));
+      startTimers.clear();
       observer?.disconnect();
       observer = null;
       blocks.forEach(resetBlock);
     };
 
-    /** 启动某文本块的逐字打字。 */
+    /** 启动某文本块逐字打字：全文透明占位，逐字从透明转可见，布局不抖。 */
     const typeBlock = (el: HTMLElement) => {
-      const nodes = collectTextNodes(el);
-      const st: TwState = {
-        el,
-        nodes,
-        caret: null,
-        timers: new Set<number>(),
-        started: true,
-        done: false,
-      };
+      const parts: TwPart[] = [];
+      collectTextNodes(el).forEach((node) => {
+        const parent = node.parentNode;
+        if (!parent) return;
+        const full = node.nodeValue ?? "";
+        const on = document.createElement("span");
+        on.className = "tw-on";
+        const off = document.createElement("span");
+        off.className = "tw-off";
+        off.textContent = full;
+        parent.replaceChild(off, node);
+        parent.insertBefore(on, off);
+        parts.push({ on, off, full });
+      });
+
+      const st: TwState = { parts, caret: null, timers: new Set<number>() };
       twStates.set(el, st);
       el.classList.remove("tw-pending");
       el.classList.add("typing");
-      nodes.forEach((r) => (r.node.nodeValue = ""));
 
       const caret = document.createElement("span");
       caret.className = "rm-caret";
@@ -153,32 +165,28 @@ export default function ArticleBody({ html }: { html: string }) {
       caret.textContent = "|";
       st.caret = caret;
 
-      const placeCaret = (after: Text) => {
-        const parent = after.parentNode;
-        if (!parent) return;
-        if (after.nextSibling) parent.insertBefore(caret, after.nextSibling);
-        else parent.appendChild(caret);
-      };
-
-      let ni = 0;
+      let pi = 0;
       let ci = 0;
-      if (nodes.length) placeCaret(nodes[0].node);
+      const placeCaret = () => {
+        if (pi < parts.length) parts[pi].off.parentNode?.insertBefore(caret, parts[pi].off);
+      };
+      placeCaret();
 
       const step = () => {
-        if (ni >= nodes.length) {
+        if (pi >= parts.length) {
           caret.remove();
           st.caret = null;
           el.classList.remove("typing");
-          st.done = true;
           return;
         }
-        const cur = nodes[ni];
+        const p = parts[pi];
         ci += 1;
-        cur.node.nodeValue = cur.full.slice(0, ci);
-        if (ci >= cur.full.length) {
-          ni += 1;
+        p.on.textContent = p.full.slice(0, ci);
+        p.off.textContent = p.full.slice(ci);
+        if (ci >= p.full.length) {
+          pi += 1;
           ci = 0;
-          if (ni < nodes.length) placeCaret(nodes[ni].node);
+          placeCaret();
         }
         const t = window.setTimeout(step, TYPE_SPEED_MS);
         st.timers.add(t);
@@ -189,34 +197,49 @@ export default function ArticleBody({ html }: { html: string }) {
     const apply = (mode: ReadingMotion) => {
       teardown();
       const effective: ReadingMotion = reduced ? "off" : mode;
-
       if (effective === "off") return;
       if (typeof IntersectionObserver === "undefined") return;
 
-      observer = new IntersectionObserver(
-        (entries, obs) => {
-          for (const e of entries) {
-            if (!e.isIntersecting) continue;
-            const el = e.target as HTMLElement;
-            obs.unobserve(el);
-            if (effective === "typewriter" && TEXT_TAGS.has(el.tagName)) {
-              typeBlock(el);
-            } else {
-              el.classList.add("reveal-in");
-            }
-          }
-        },
-        { threshold: 0.1, rootMargin: "0px 0px -10% 0px" },
-      );
+      const isTw = (el: HTMLElement) =>
+        effective === "typewriter" && TEXT_TAGS.has(el.tagName);
 
-      blocks.forEach((el) => {
-        if (effective === "typewriter" && TEXT_TAGS.has(el.tagName)) {
-          // 文本块：预隐藏（保留布局高度，避免进视口前闪现全文）
-          el.classList.add("tw-pending");
-        } else {
-          el.classList.add("reveal");
-        }
-        observer!.observe(el);
+      // 先打上初始隐藏态（浮入：opacity0 下移；打字：透明占位保留布局）
+      blocks.forEach((el) => el.classList.add(isTw(el) ? "tw-pending" : "reveal"));
+
+      // 等隐藏态先绘制一帧，否则进视口的块会瞬间到位、不播放过渡
+      rafId = requestAnimationFrame(() => {
+        rafId = requestAnimationFrame(() => {
+          observer = new IntersectionObserver(
+            (entries, obs) => {
+              const hits = entries
+                .filter((e) => e.isIntersecting)
+                .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+              hits.forEach((e, i) => {
+                const el = e.target as HTMLElement;
+                obs.unobserve(el);
+                if (isTw(el)) {
+                  const delay = Math.min(i * 160, 640); // 首屏自上而下错峰开打
+                  if (delay) {
+                    const t = window.setTimeout(() => {
+                      startTimers.delete(t);
+                      typeBlock(el);
+                    }, delay);
+                    startTimers.add(t);
+                  } else {
+                    typeBlock(el);
+                  }
+                } else {
+                  if (hits.length > 1) {
+                    el.style.transitionDelay = `${Math.min(i * 70, 420)}ms`;
+                  }
+                  el.classList.add("reveal-in");
+                }
+              });
+            },
+            { threshold: 0.08 },
+          );
+          blocks.forEach((el) => observer!.observe(el));
+        });
       });
     };
 

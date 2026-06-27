@@ -605,6 +605,8 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   transform: none;
 }
 .body > .tw-pending { visibility: hidden; }
+/* 打字机：待打出的文字透明占位，锁定布局不抖动 */
+.tw-off { color: transparent; }
 .rm-caret {
   display: inline-block;
   color: var(--accent);
