@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { getSetting } from "@/lib/settings";
+import { formatAuthorName } from "@/lib/author";
 import { formatDate, formatViews } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +43,8 @@ export default async function CategoryDetailPage({
     },
   });
   if (!category) notFound();
+
+  const adminName = await getSetting("author.adminName");
 
   const where = {
     status: "PUBLISHED" as const,
@@ -130,7 +134,7 @@ export default async function CategoryDetailPage({
               </h3>
               <div className="meta">
                 {p.publishedAt && <>{formatDate(p.publishedAt)} · </>}
-                <b>{p.author.displayName}</b> ·{" "}
+                <b>{formatAuthorName(p.author, adminName)}</b> ·{" "}
                 <span className="views">阅读 {formatViews(p.viewCount)}</span>
               </div>
               {p.excerpt && <p className="dek">{p.excerpt}</p>}

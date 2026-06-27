@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { renderMarkdown, extractToc } from "@/lib/markdown";
 import { formatDate, formatViews } from "@/lib/utils";
 import { getSetting } from "@/lib/settings";
+import { formatAuthorName } from "@/lib/author";
 import ArticleGate from "@/components/reader/ArticleGate";
 import { readUnlocks } from "@/lib/unlock-cookie";
 
@@ -58,10 +59,7 @@ export default async function PostPage({
 
   // 作者为管理员时显示「<设置的管理员名 或 作者本名>（管理员）」
   const adminName = await getSetting("author.adminName");
-  const authorLabel =
-    post.author.role === "ADMIN"
-      ? `${adminName.trim() || post.author.displayName}（管理员）`
-      : post.author.displayName;
+  const authorLabel = formatAuthorName(post.author, adminName);
 
   const [prev, next] = await Promise.all([
     post.publishedAt

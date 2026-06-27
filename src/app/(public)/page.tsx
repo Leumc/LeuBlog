@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSetting } from "@/lib/settings";
+import { formatAuthorName } from "@/lib/author";
 import { formatDate, formatViews, formatCompact } from "@/lib/utils";
 import SidebarPortals from "@/components/reader/SidebarPortals";
 
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const count = parseInt((await getSetting("home.postCount")) || "8", 10);
+  const adminName = await getSetting("author.adminName");
   const [posts, categories, popular] = await Promise.all([
     prisma.post.findMany({
       where: { status: "PUBLISHED" },
@@ -48,7 +50,7 @@ export default async function HomePage() {
               </h2>
               <div className="meta">
                 {p.publishedAt && <>{formatDate(p.publishedAt)} · </>}
-                <b>{p.author.displayName}</b> ·{" "}
+                <b>{formatAuthorName(p.author, adminName)}</b> ·{" "}
                 <span className="views">阅读 {formatViews(p.viewCount)}</span>
               </div>
               {p.excerpt && <p className="dek">{p.excerpt}</p>}
