@@ -6,6 +6,7 @@ node_modules/
 .next/
 out/
 dist/
+tsconfig.tsbuildinfo
 
 # 运行期数据与上传（部署时挂载卷）
 data/
