@@ -171,30 +171,36 @@ header.masthead {
 nav.main {
   border-bottom: 1px solid var(--rule);
   background: var(--paper-2);
+  /* 由 MainNav 按实际视口宽度测算后写入，使整条导航等比缩放至单行放下全部入口 */
+  --nav-scale: 1;
 }
 nav.main .wrap {
   display: flex;
   justify-content: center;
-  gap: 38px;
-  padding: 12px 32px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: calc(38px * var(--nav-scale));
+  padding: 12px calc(32px * var(--nav-scale));
 }
 nav.main.brandnav .wrap {
   justify-content: flex-start;
   align-items: center;
-  gap: 30px;
+  gap: calc(30px * var(--nav-scale));
 }
 nav.main .brand {
-  font-size: 20px;
+  font-size: calc(20px * var(--nav-scale));
   font-weight: 700;
   letter-spacing: 0.02em;
   margin-right: auto;
+  white-space: nowrap;
 }
 nav.main a {
-  font-size: 13px;
+  font-size: calc(13px * var(--nav-scale));
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--ink-soft);
   font-family: Georgia, serif;
+  white-space: nowrap;
 }
 nav.main .brand { text-transform: none; letter-spacing: 0.02em; }
 nav.main a:hover { color: var(--accent); }
@@ -1154,18 +1160,7 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   .layout-home > *, .layout-cat > *, .layout-about > *,
   .layout-post > *, .archive-layout > *, .cat-block > * { min-width: 0; }
   .tg-row { grid-template-columns: 1fr; gap: 8px; }
-
-  /* 顶部导航保持单行（不换到第二行），过窄时横向滑动 */
-  nav.main .wrap {
-    flex-wrap: nowrap;
-    gap: 16px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  nav.main .wrap::-webkit-scrollbar { display: none; }
-  nav.main a { white-space: nowrap; }
-  nav.main.brandnav .brand { margin-right: 14px; }
+  /* 顶部导航的单行自适应缩放由 MainNav(--nav-scale) 接管，这里不再写死字号/换行 */
 
   /* 侧栏 → 右侧抽屉（默认移出屏幕，body.aside-open 时滑入） */
   .layout-home aside, .layout-cat aside, .layout-about aside,
@@ -1244,10 +1239,6 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   /* 文章标题（在 .body 之外）按屏宽换行、收小字号 */
   article h1 { font-size: 28px; line-height: 1.3; overflow-wrap: break-word; }
   .post-meta { flex-wrap: wrap; row-gap: 4px; }
-  /* 导航再缩一档，尽量一屏放下不滑动 */
-  nav.main .wrap { gap: 13px; padding: 11px 16px; }
-  nav.main a { font-size: 12px; letter-spacing: 0.08em; }
-  nav.main.brandnav .brand { font-size: 17px; }
 }
 
 /* 访问许可门禁 */
