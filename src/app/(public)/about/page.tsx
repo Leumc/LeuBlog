@@ -26,14 +26,6 @@ export default async function AboutPage() {
 
   return (
     <>
-      <div className="wrap">
-        <div className="about-head">
-          <div className="label">About</div>
-          <h2>关于这里</h2>
-          <p>{s["site.subtitle"]}</p>
-        </div>
-      </div>
-
       <div className="wrap layout-about">
         <main>
           <div className="about-prose" dangerouslySetInnerHTML={{ __html: html }} />

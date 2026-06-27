@@ -539,10 +539,6 @@ aside .grp {
 /* ============================================================
    关于
    ============================================================ */
-.about-head { text-align: center; padding: 46px 0 30px; border-bottom: 3px double var(--accent); }
-.about-head .label { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); font-family: Georgia, serif; }
-.about-head h2 { font-size: 44px; font-weight: 700; margin: 14px 0 14px; }
-.about-head p { max-width: 640px; margin: 0 auto; font-style: italic; color: var(--ink-soft); font-size: 18px; }
 .layout-about { display: grid; grid-template-columns: 1fr 270px; gap: 56px; padding-block: 40px 30px; }
 .about-prose { line-height: 1.85; }
 .about-prose h1, .about-prose h2, .about-prose h3 {
@@ -1246,6 +1242,21 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   /* 文章标题（在 .body 之外）按屏宽换行、收小字号 */
   article h1 { font-size: 28px; line-height: 1.3; overflow-wrap: break-word; }
   .post-meta { flex-wrap: wrap; row-gap: 4px; }
+
+  /* 关于页统计：手机端 4 列过窄被压成竖矩形，改 2×2 并锁定正方形 */
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stats div {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    border-top: 1px solid var(--rule);
+  }
+  .stats > div:nth-child(odd) { border-left: none; }
+  .stats > div:nth-child(-n + 2) { border-top: none; }
 }
 
 /* 侧栏可见但窗口未达居中默认宽度时：让文章右侧带状目录贴到屏幕右缘，
