@@ -1245,6 +1245,12 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   .post-meta { flex-wrap: wrap; row-gap: 4px; }
 }
 
+/* 侧栏可见但窗口未达居中默认宽度时：让文章右侧带状目录贴到屏幕右缘，
+   不在侧栏右侧留出空白条（目录自身的内边距保证文字不顶到边缘） */
+@media (min-width: 861px) and (max-width: 1100px) {
+  .layout-post { padding-right: 0; }
+}
+
 /* 访问许可门禁 */
 .gate {
   max-width: 640px;
