@@ -1245,16 +1245,8 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   article h1 { font-size: 28px; line-height: 1.3; overflow-wrap: break-word; }
   .post-meta { flex-wrap: wrap; row-gap: 4px; }
 
-  /* 关于页统计：始终保持一行四格，窄屏缩成小正方形（不换行、不压成竖矩形） */
-  .stats div {
-    aspect-ratio: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 4px;
-  }
+  /* 关于页统计：始终一行四格，窄屏只缩字号/内边距；高度由内容决定、不随列宽变化 */
+  .stats div { padding: 12px 4px; }
   .stats .num { font-size: 20px; }
   .stats .cap { font-size: 10px; letter-spacing: 0.04em; }
 }
@@ -1275,7 +1267,8 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
 /* 访问许可门禁 */
 .gate {
   max-width: 640px;
-  padding: 60px 0 80px;
+  /* 仅设上下内边距，左右页边距交给 .wrap（此前 padding 横向 0 覆盖了 .wrap 的 32px，导致解锁页贴边） */
+  padding-block: 60px 80px;
   text-align: center;
 }
 .gate .gate-lock {
