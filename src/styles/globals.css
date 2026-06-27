@@ -186,33 +186,40 @@ nav.main .brand { text-transform: none; letter-spacing: 0.02em; }
 nav.main a:hover { color: var(--accent); }
 nav.main a.active { color: var(--accent); font-weight: 700; }
 
-/* 阅读动效切换器 */
+/* 阅读动效切换器（位于文章右侧目录顶部，深色侧栏内） */
 .rm-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  background: var(--paper);
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
 }
-.rm-control button {
-  font-family: inherit;
+.rm-control .k {
   font-size: 11px;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: Georgia, serif;
+  margin-bottom: 8px;
 }
-.rm-control button:hover { color: var(--accent); }
+.rm-control .opts { display: flex; gap: 6px; }
+.rm-control button {
+  flex: 1;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 6px 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.rm-control button:hover { color: #fff; border-color: rgba(255, 255, 255, 0.6); }
 .rm-control button.active {
-  color: #fff;
-  background: var(--accent);
+  color: var(--band);
+  background: #fff;
+  border-color: #fff;
+  font-weight: 600;
 }
 
 /* ---------- 板块标签 ---------- */

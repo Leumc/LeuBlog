@@ -38,17 +38,20 @@ export default function ReadingMotionControl() {
 
   return (
     <div className="rm-control" role="group" aria-label="阅读动效">
-      {OPTIONS.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          className={o.value === mode ? "active" : ""}
-          aria-pressed={o.value === mode}
-          onClick={() => choose(o.value)}
-        >
-          {o.label}
-        </button>
-      ))}
+      <div className="k">阅读动效</div>
+      <div className="opts">
+        {OPTIONS.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            className={o.value === mode ? "active" : ""}
+            aria-pressed={o.value === mode}
+            onClick={() => choose(o.value)}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

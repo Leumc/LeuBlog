@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ReadingMotionControl from "./ReadingMotionControl";
 
 const NAV = [
   { label: "首页", href: "/" },
@@ -42,7 +41,6 @@ export default function MainNav({
             {n.label}
           </Link>
         ))}
-        <ReadingMotionControl />
       </div>
     </nav>
   );

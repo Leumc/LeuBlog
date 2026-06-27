@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { TocItem } from "@/lib/markdown";
+import ReadingMotionControl from "./ReadingMotionControl";
 
 /** 文章右侧目录（深砖红色条内），跟随滚动高亮 + 分享块 */
 export default function Toc({ items }: { items: TocItem[] }) {
@@ -34,6 +35,7 @@ export default function Toc({ items }: { items: TocItem[] }) {
 
   return (
     <nav className="toc">
+      <ReadingMotionControl />
       <div className="lbl">目录</div>
       {items.map((i) => (
         <a
