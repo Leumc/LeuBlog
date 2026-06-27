@@ -57,7 +57,6 @@ export default async function ArchivePage() {
           <a href="/">首页</a> &nbsp;/&nbsp; 归档
         </div>
         <h2>归档</h2>
-        <p className="lead">按时间浏览全部文章 · 侧栏随阅读焦点自动展开</p>
       </div>
       {years.length === 0 ? (
         <p style={{ padding: "40px 0", fontStyle: "italic", color: "var(--muted)" }}>

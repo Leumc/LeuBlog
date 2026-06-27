@@ -25,6 +25,7 @@ export const SETTING_DEFAULTS = {
     "# 关于本站\n\n这里记录我的算法学习与计算机技术笔记。内容可在后台「设置」中修改。",
   "about.contact": "邮箱：admin@leublog.local",
   "about.colophon": "由 Next.js + SQLite 构建，部署于轻量 VPS。",
+  "footer.poweredBy": "由 Next.js 与衬线字体驱动",
 } as const;
 
 export type SettingKey = keyof typeof SETTING_DEFAULTS;

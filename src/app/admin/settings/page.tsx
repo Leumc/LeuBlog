@@ -99,6 +99,12 @@ export default async function SettingsPage() {
             <form action={saveSettings}>
               <Field name="about.contact" label="联系方式" value={s["about.contact"]} />
               <Field name="about.colophon" label="Colophon（页脚说明）" value={s["about.colophon"]} />
+              <Field
+                name="footer.poweredBy"
+                label="页脚「驱动」说明"
+                value={s["footer.poweredBy"]}
+                hint="页脚中部「· … ·」处文字，如「由 Next.js 与衬线字体驱动」"
+              />
               <button className="btn primary">保存</button>
             </form>
           </div>

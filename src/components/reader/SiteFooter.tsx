@@ -4,9 +4,10 @@ import { normalizeAccent } from "@/lib/appearance";
 import AccentSwitcher from "@/components/reader/AccentSwitcher";
 
 export default async function SiteFooter() {
-  const [placement, accent] = await Promise.all([
+  const [placement, accent, poweredBy] = await Promise.all([
     getSetting("portal.placement"),
     getSetting("appearance.accent"),
+    getSetting("footer.poweredBy"),
   ]);
   const footerPortals =
     placement === "footer"
@@ -29,7 +30,7 @@ export default async function SiteFooter() {
           </div>
         )}
         <div className="foot-row">
-          <span>LeuBlog · 由 Next.js 与衬线字体驱动 · © {new Date().getFullYear()}</span>
+          <span>LeuBlog · {poweredBy} · © {new Date().getFullYear()}</span>
           <AccentSwitcher defaultAccent={normalizeAccent(accent)} />
         </div>
       </div>

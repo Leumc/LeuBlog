@@ -36,9 +36,6 @@ export default async function TagsPage() {
           <Link href="/">首页</Link> &nbsp;/&nbsp; 标签
         </div>
         <h2>标签</h2>
-        <p className="lead">
-          按 <b>文章分组 → 标签组</b> 两级层次组织 · 角标为文章数
-        </p>
       </div>
 
       {categories.map((c) => (
