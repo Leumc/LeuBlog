@@ -589,7 +589,7 @@ aside .s-label::before { content: ""; width: 8px; height: 8px; background: var(-
 aside .contact { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
 aside .contact .k { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-family: Georgia, serif; }
 aside .contact a { color: var(--accent); }
-aside .colophon { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+aside .colophon { font-size: 13px; color: var(--ink-soft); line-height: 1.7; white-space: pre-line; }
 aside .colophon b { color: var(--accent-2); }
 
 /* ============================================================

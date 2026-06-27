@@ -93,12 +93,26 @@ export default async function SettingsPage() {
 
         <div className="panel">
           <div className="h">
-            <h2>联系方式 / Colophon</h2>
+            <h2>联系方式 / 补充信息</h2>
           </div>
           <div className="b">
             <form action={saveSettings}>
-              <Field name="about.contact" label="联系方式" value={s["about.contact"]} />
-              <Field name="about.colophon" label="Colophon（页脚说明）" value={s["about.colophon"]} />
+              <Field
+                name="about.contact"
+                label="联系方式"
+                value={s["about.contact"]}
+                textarea
+                rows={3}
+                hint="每行一条，可填写多条（换行分隔）"
+              />
+              <Field
+                name="about.colophon"
+                label="补充信息"
+                value={s["about.colophon"]}
+                textarea
+                rows={3}
+                hint="关于页「补充信息」区，可多行"
+              />
               <Field
                 name="footer.poweredBy"
                 label="页脚「驱动」说明"

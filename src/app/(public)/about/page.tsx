@@ -54,7 +54,8 @@ export default async function AboutPage() {
           <div className="block">
             <div className="s-label">联系</div>
             {s["about.contact"]
-              .split("\n")
+              .split(/\r?\n/)
+              .map((line) => line.trim())
               .filter(Boolean)
               .map((line, i) => (
                 <div className="contact" key={i}>
