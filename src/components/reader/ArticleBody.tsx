@@ -11,10 +11,11 @@ import {
 const TEXT_TAGS = new Set(["P", "H1", "H2", "H3", "H4", "UL", "OL", "BLOCKQUOTE"]);
 const TYPE_SPEED_MS = 18;
 
-/** 一个被拆为「已打出 / 待打出」两段的文本节点，待打出段透明占位以锁定布局。 */
-type TwPart = { on: HTMLElement; off: HTMLElement; full: string };
+/** 被打字接管的文本节点：换成一个逐字填充的 span，记下全文以便还原。 */
+type TwRec = { on: HTMLElement; full: string };
 type TwState = {
-  parts: TwPart[];
+  el: HTMLElement;
+  recs: TwRec[];
   caret: HTMLElement | null;
   timers: Set<number>;
 };
@@ -102,7 +103,6 @@ export default function ArticleBody({ html }: { html: string }) {
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
     let observer: IntersectionObserver | null = null;
-    let rafId = 0;
     const startTimers = new Set<number>();
     const twStates = new Map<HTMLElement, TwState>();
 
@@ -110,17 +110,14 @@ export default function ArticleBody({ html }: { html: string }) {
     const resetBlock = (el: HTMLElement) => {
       el.classList.remove("reveal", "reveal-in", "typing", "tw-pending");
       el.style.transitionDelay = "";
+      el.style.minHeight = "";
       const st = twStates.get(el);
       if (st) {
         st.timers.forEach((t) => clearTimeout(t));
         st.caret?.remove();
-        // 把拆开的 on/off 两段合回单个原始文本节点
-        st.parts.forEach((p) => {
-          const parent = p.off.parentNode;
-          if (parent) {
-            parent.replaceChild(document.createTextNode(p.full), p.off);
-            p.on.remove();
-          }
+        st.recs.forEach((r) => {
+          const parent = r.on.parentNode;
+          if (parent) parent.replaceChild(document.createTextNode(r.full), r.on);
         });
         twStates.delete(el);
       }
@@ -128,8 +125,6 @@ export default function ArticleBody({ html }: { html: string }) {
 
     /** 拆掉当前模式的所有副作用，恢复全部块为可见。 */
     const teardown = () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = 0;
       startTimers.forEach((t) => clearTimeout(t));
       startTimers.clear();
       observer?.disconnect();
@@ -137,27 +132,29 @@ export default function ArticleBody({ html }: { html: string }) {
       blocks.forEach(resetBlock);
     };
 
-    /** 启动某文本块逐字打字：全文透明占位，逐字从透明转可见，布局不抖。 */
+    /**
+     * 启动某文本块逐字打字：先按当前完整高度锁定 min-height（整块预留空白，
+     * 下文不被顶动），再清空文字逐字填回——行内代码等样式框随打字自然长出。
+     */
     const typeBlock = (el: HTMLElement) => {
-      const parts: TwPart[] = [];
+      const h = el.getBoundingClientRect().height; // tw-pending 隐藏态仍有布局高度
+      el.style.minHeight = `${h}px`;
+      el.classList.remove("tw-pending");
+      el.classList.add("typing");
+
+      const recs: TwRec[] = [];
       collectTextNodes(el).forEach((node) => {
         const parent = node.parentNode;
         if (!parent) return;
         const full = node.nodeValue ?? "";
         const on = document.createElement("span");
         on.className = "tw-on";
-        const off = document.createElement("span");
-        off.className = "tw-off";
-        off.textContent = full;
-        parent.replaceChild(off, node);
-        parent.insertBefore(on, off);
-        parts.push({ on, off, full });
+        parent.replaceChild(on, node);
+        recs.push({ on, full });
       });
 
-      const st: TwState = { parts, caret: null, timers: new Set<number>() };
+      const st: TwState = { el, recs, caret: null, timers: new Set<number>() };
       twStates.set(el, st);
-      el.classList.remove("tw-pending");
-      el.classList.add("typing");
 
       const caret = document.createElement("span");
       caret.className = "rm-caret";
@@ -165,26 +162,29 @@ export default function ArticleBody({ html }: { html: string }) {
       caret.textContent = "|";
       st.caret = caret;
 
-      let pi = 0;
+      let ri = 0;
       let ci = 0;
       const placeCaret = () => {
-        if (pi < parts.length) parts[pi].off.parentNode?.insertBefore(caret, parts[pi].off);
+        if (ri < recs.length) {
+          const on = recs[ri].on;
+          on.parentNode?.insertBefore(caret, on.nextSibling);
+        }
       };
       placeCaret();
 
       const step = () => {
-        if (pi >= parts.length) {
+        if (ri >= recs.length) {
           caret.remove();
           st.caret = null;
           el.classList.remove("typing");
+          el.style.minHeight = ""; // 交还自然高度
           return;
         }
-        const p = parts[pi];
+        const r = recs[ri];
         ci += 1;
-        p.on.textContent = p.full.slice(0, ci);
-        p.off.textContent = p.full.slice(ci);
-        if (ci >= p.full.length) {
-          pi += 1;
+        r.on.textContent = r.full.slice(0, ci);
+        if (ci >= r.full.length) {
+          ri += 1;
           ci = 0;
           placeCaret();
         }
@@ -198,49 +198,61 @@ export default function ArticleBody({ html }: { html: string }) {
       teardown();
       const effective: ReadingMotion = reduced ? "off" : mode;
       if (effective === "off") return;
-      if (typeof IntersectionObserver === "undefined") return;
 
       const isTw = (el: HTMLElement) =>
         effective === "typewriter" && TEXT_TAGS.has(el.tagName);
 
-      // 先打上初始隐藏态（浮入：opacity0 下移；打字：透明占位保留布局）
+      /** 触发一个块的入场；order 用于首屏自上而下的错峰。 */
+      const trigger = (el: HTMLElement, order: number) => {
+        if (isTw(el)) {
+          const delay = Math.min(order * 160, 640);
+          if (delay) {
+            const t = window.setTimeout(() => {
+              startTimers.delete(t);
+              typeBlock(el);
+            }, delay);
+            startTimers.add(t);
+          } else {
+            typeBlock(el);
+          }
+        } else {
+          if (order > 0) el.style.transitionDelay = `${Math.min(order * 70, 420)}ms`;
+          el.classList.add("reveal-in");
+        }
+      };
+
+      // 先打上初始隐藏态（浮入：opacity0 下移；打字：隐藏占位保留高度）
       blocks.forEach((el) => el.classList.add(isTw(el) ? "tw-pending" : "reveal"));
 
-      // 等隐藏态先绘制一帧，否则进视口的块会瞬间到位、不播放过渡
-      rafId = requestAnimationFrame(() => {
-        rafId = requestAnimationFrame(() => {
-          observer = new IntersectionObserver(
-            (entries, obs) => {
-              const hits = entries
-                .filter((e) => e.isIntersecting)
-                .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-              hits.forEach((e, i) => {
-                const el = e.target as HTMLElement;
-                obs.unobserve(el);
-                if (isTw(el)) {
-                  const delay = Math.min(i * 160, 640); // 首屏自上而下错峰开打
-                  if (delay) {
-                    const t = window.setTimeout(() => {
-                      startTimers.delete(t);
-                      typeBlock(el);
-                    }, delay);
-                    startTimers.add(t);
-                  } else {
-                    typeBlock(el);
-                  }
-                } else {
-                  if (hits.length > 1) {
-                    el.style.transitionDelay = `${Math.min(i * 70, 420)}ms`;
-                  }
-                  el.classList.add("reveal-in");
-                }
-              });
-            },
-            { threshold: 0.08 },
-          );
-          blocks.forEach((el) => observer!.observe(el));
-        });
+      // 强制一次回流，把隐藏态确定为过渡起点，否则同帧改回会“瞬间到位”不播过渡
+      void root.offsetHeight;
+
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      const pending: HTMLElement[] = [];
+      let order = 0;
+      blocks.forEach((el) => {
+        // 视口内（含上方已滚过）的块立即入场；其余交给 IO 滚动到再触发
+        if (el.getBoundingClientRect().top < vh) trigger(el, order++);
+        else pending.push(el);
       });
+
+      if (pending.length && typeof IntersectionObserver !== "undefined") {
+        observer = new IntersectionObserver(
+          (entries, obs) => {
+            for (const e of entries) {
+              if (!e.isIntersecting) continue;
+              const el = e.target as HTMLElement;
+              obs.unobserve(el);
+              trigger(el, 0); // 滚动进入的块逐个触发，不再错峰
+            }
+          },
+          { threshold: 0.08 },
+        );
+        pending.forEach((el) => observer!.observe(el));
+      } else if (pending.length) {
+        // 无 IO 支持：直接全部入场
+        pending.forEach((el) => trigger(el, 0));
+      }
     };
 
     apply(readReadingMotion());

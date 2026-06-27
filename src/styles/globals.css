@@ -604,9 +604,14 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   opacity: 1;
   transform: none;
 }
+/* 打字机：进视口前隐藏占位（保留高度，避免闪现全文） */
 .body > .tw-pending { visibility: hidden; }
-/* 打字机：待打出的文字透明占位，锁定布局不抖动 */
-.tw-off { color: transparent; }
+/* 行内代码框在文字打到之前不显示，随打字一起长出 */
+.body :not(pre) > code:has(> .tw-on:empty) {
+  background: transparent;
+  border-color: transparent;
+  padding: 0;
+}
 .rm-caret {
   display: inline-block;
   color: var(--accent);
