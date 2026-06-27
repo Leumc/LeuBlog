@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function AboutPage() {
   const s = await getSettings();
   const html = await renderMarkdown(s["about.content"]);
+  const colophonHtml = await renderMarkdown(s["about.colophon"]);
 
   const [postCount, catCount, tagCount, firstPost] = await Promise.all([
     prisma.post.count({ where: { status: "PUBLISHED" } }),
@@ -75,7 +76,7 @@ export default async function AboutPage() {
 
           <div className="block">
             <div className="s-label">补充信息</div>
-            <div className="colophon">{s["about.colophon"]}</div>
+            <div className="colophon" dangerouslySetInnerHTML={{ __html: colophonHtml }} />
           </div>
         </aside>
       </div>

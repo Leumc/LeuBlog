@@ -589,8 +589,15 @@ aside .s-label::before { content: ""; width: 8px; height: 8px; background: var(-
 aside .contact { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
 aside .contact .k { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-family: Georgia, serif; }
 aside .contact a { color: var(--accent); }
-aside .colophon { font-size: 13px; color: var(--ink-soft); line-height: 1.7; white-space: pre-line; }
-aside .colophon b { color: var(--accent-2); }
+aside .colophon { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+aside .colophon b, aside .colophon strong { color: var(--accent-2); }
+aside .colophon p { margin: 0 0 8px; }
+aside .colophon p:last-child { margin-bottom: 0; }
+aside .colophon a { color: var(--accent); }
+aside .colophon a:hover { color: var(--accent-2); }
+aside .colophon ul, aside .colophon ol { margin: 0 0 8px; padding-left: 1.3em; }
+aside .colophon li { margin: 2px 0; }
+aside .colophon code { font-family: var(--mono); font-size: 0.88em; background: var(--paper-2); border: 1px solid var(--rule); padding: 0 4px; border-radius: 3px; }
 
 /* ============================================================
    文章阅读页

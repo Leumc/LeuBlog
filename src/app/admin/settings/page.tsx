@@ -110,8 +110,8 @@ export default async function SettingsPage() {
                 label="补充信息"
                 value={s["about.colophon"]}
                 textarea
-                rows={3}
-                hint="关于页「补充信息」区，可多行"
+                rows={4}
+                hint="关于页「补充信息」区，支持 Markdown"
               />
               <Field
                 name="footer.poweredBy"
