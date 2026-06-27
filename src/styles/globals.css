@@ -1254,6 +1254,13 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   .layout-post { padding-right: 0; }
 }
 
+/* 同上：归档左侧带状时间线在该区间贴到屏幕左缘，不留左侧空隙。
+   仅向左外扩 .archive-layout（标题等其它内容仍保留页边距），
+   时间线内层 .side-inner 自带内边距，文字不会顶到边缘 */
+@media (min-width: 861px) and (max-width: 1120px) {
+  .archive-layout { margin-left: -32px; width: calc(100% + 32px); }
+}
+
 /* 访问许可门禁 */
 .gate {
   max-width: 640px;
