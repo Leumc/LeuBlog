@@ -186,6 +186,35 @@ nav.main .brand { text-transform: none; letter-spacing: 0.02em; }
 nav.main a:hover { color: var(--accent); }
 nav.main a.active { color: var(--accent); font-weight: 700; }
 
+/* 阅读动效切换器 */
+.rm-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+}
+.rm-control button {
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.rm-control button:hover { color: var(--accent); }
+.rm-control button.active {
+  color: #fff;
+  background: var(--accent);
+}
+
 /* ---------- 板块标签 ---------- */
 .section-label {
   font-size: 11px;
@@ -564,6 +593,29 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 }
 .post-meta b { font-style: normal; font-weight: 600; color: var(--ink-soft); }
 .post-meta .v { color: var(--accent-2); font-style: normal; font-weight: 600; }
+
+/* 阅读动效：滚动浮现 / 打字机 */
+.body > .reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.body > .reveal.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+.body > .tw-pending { visibility: hidden; }
+.rm-caret {
+  display: inline-block;
+  color: var(--accent);
+  font-weight: 400;
+  animation: rm-blink 1s steps(1) infinite;
+}
+@keyframes rm-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .body > .reveal { opacity: 1; transform: none; transition: none; }
+  .body > .tw-pending { visibility: visible; }
+}
 
 /* 正文 */
 .body { padding-top: 10px; font-size: 18px; line-height: 1.85; }
