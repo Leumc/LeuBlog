@@ -795,6 +795,10 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
    归档（焦点跟随侧栏 + 热力图）
    ============================================================ */
 .archive-layout { display: grid; grid-template-columns: 268px 1fr; gap: 46px; align-items: start; padding: 18px 0 70px; }
+/* 网格子项默认 min-width:auto，内部宽内容（如归档热力图）会把列撑破、顶开整行网格、
+   导致溢出与偏移；强制可收缩，让宽内容在自身容器内横向滚动而非撑破布局 */
+.layout-home > *, .layout-cat > *, .layout-about > *,
+.layout-post > *, .archive-layout > *, .cat-block > * { min-width: 0; }
 .side { align-self: stretch; background: var(--band); border-left: 4px solid var(--band-edge); }
 .side-inner { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow: auto; padding: 16px 12px 18px 16px; scrollbar-width: none; }
 .side-inner::-webkit-scrollbar { width: 0; display: none; }
@@ -1159,10 +1163,6 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
     grid-template-columns: minmax(0, 1fr);
     gap: 28px;
   }
-  /* 关键：网格子项默认 min-width:auto 不会收缩，正文里的宽内容会撑破并被裁切；
-     强制可收缩，内容才会真正按屏宽换行/滚动 */
-  .layout-home > *, .layout-cat > *, .layout-about > *,
-  .layout-post > *, .archive-layout > *, .cat-block > * { min-width: 0; }
   .tg-row { grid-template-columns: 1fr; gap: 8px; }
   /* 顶部导航的单行自适应缩放由 MainNav(--nav-scale) 接管，这里不再写死字号/换行 */
 
