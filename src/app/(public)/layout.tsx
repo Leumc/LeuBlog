@@ -1,5 +1,6 @@
 import SiteHeader from "@/components/reader/SiteHeader";
 import SiteFooter from "@/components/reader/SiteFooter";
+import MobileSidebarDrawer from "@/components/reader/MobileSidebarDrawer";
 import { getSettings } from "@/lib/settings";
 import { normalizeAccent } from "@/lib/appearance";
 
@@ -27,6 +28,7 @@ export default async function PublicLayout({
         <SiteHeader />
         <main style={{ flex: 1 }}>{children}</main>
         <SiteFooter />
+        <MobileSidebarDrawer />
       </div>
     </>
   );

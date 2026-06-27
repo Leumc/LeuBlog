@@ -3,6 +3,7 @@ import { normalizeAccent } from "@/lib/appearance";
 import MainNav from "@/components/reader/MainNav";
 import SiteFooter from "@/components/reader/SiteFooter";
 import ProgressBar from "@/components/reader/ProgressBar";
+import MobileSidebarDrawer from "@/components/reader/MobileSidebarDrawer";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function ReadingLayout({
         <MainNav variant="brand" brand={s["masthead.title"]} />
         <main style={{ flex: 1 }}>{children}</main>
         <SiteFooter />
+        <MobileSidebarDrawer />
       </div>
     </>
   );

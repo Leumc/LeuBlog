@@ -42,6 +42,16 @@ export default function ArticleBody({ html }: { html: string }) {
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
+    // 宽表格在窄屏会把页面撑出横向滚动（整页缩放）；包一层可横向滚动的容器
+    root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
+      const parent = table.parentElement;
+      if (!parent || parent.classList.contains("table-scroll")) return;
+      const wrap = document.createElement("div");
+      wrap.className = "table-scroll";
+      parent.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    });
+
     const figures = root.querySelectorAll<HTMLElement>(
       "figure[data-rehype-pretty-code-figure]",
     );
