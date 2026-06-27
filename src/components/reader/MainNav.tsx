@@ -51,12 +51,25 @@ export default function MainNav({
       }
     };
 
-    fit();
-    const ro = new ResizeObserver(() => fit());
+    // 仅在导航“宽度”变化时重测：缩放字号会改变 nav 高度，若不加判断会触发
+    // ResizeObserver 自反馈循环（被节流后导致变宽时缩放卡住、不回弹）
+    let lastWidth = -1;
+    const refit = () => {
+      const w = nav.clientWidth;
+      if (w === lastWidth) return;
+      lastWidth = w;
+      fit();
+    };
+
+    refit();
+    const ro = new ResizeObserver(refit);
     ro.observe(nav);
-    // 字体异步加载完成后宽度会变，重测一次
+    // 字体异步加载完成后宽度会变，强制重测一次
     (document as Document & { fonts?: FontFaceSet }).fonts?.ready
-      ?.then(fit)
+      ?.then(() => {
+        lastWidth = -1;
+        refit();
+      })
       .catch(() => {});
     return () => ro.disconnect();
   }, [brand, variant]);

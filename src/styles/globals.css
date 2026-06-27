@@ -77,6 +77,9 @@
 
 /* 移动端基础：禁止字号自动放大 */
 html { -webkit-text-size-adjust: 100%; }
+/* 始终为纵向滚动条预留沟槽，避免「有/无滚动条」页面之间内容居中位置左右跳动
+   （如归档页内容短无滚动条时，相对其它页会整体偏右、显得不居中） */
+html { scrollbar-gutter: stable; }
 /* 宽表格横向滚动而非撑破页面（由 ArticleBody 包裹 .table-scroll） */
 .table-scroll {
   max-width: 100%;
