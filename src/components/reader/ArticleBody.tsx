@@ -103,6 +103,7 @@ export default function ArticleBody({ html }: { html: string }) {
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
     let observer: IntersectionObserver | null = null;
+    let rafId = 0;
     const startTimers = new Set<number>();
     const twStates = new Map<HTMLElement, TwState>();
 
@@ -125,6 +126,8 @@ export default function ArticleBody({ html }: { html: string }) {
 
     /** 拆掉当前模式的所有副作用，恢复全部块为可见。 */
     const teardown = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
       startTimers.forEach((t) => clearTimeout(t));
       startTimers.clear();
       observer?.disconnect();
@@ -224,35 +227,36 @@ export default function ArticleBody({ html }: { html: string }) {
       // 先打上初始隐藏态（浮入：opacity0 下移；打字：隐藏占位保留高度）
       blocks.forEach((el) => el.classList.add(isTw(el) ? "tw-pending" : "reveal"));
 
-      // 强制一次回流，把隐藏态确定为过渡起点，否则同帧改回会“瞬间到位”不播过渡
-      void root.offsetHeight;
-
       const vh = window.innerHeight || document.documentElement.clientHeight;
-      const pending: HTMLElement[] = [];
-      let order = 0;
+      const hasIO = typeof IntersectionObserver !== "undefined";
+      const inView: HTMLElement[] = [];
       blocks.forEach((el) => {
-        // 视口内（含上方已滚过）的块立即入场；其余交给 IO 滚动到再触发
-        if (el.getBoundingClientRect().top < vh) trigger(el, order++);
-        else pending.push(el);
+        // 视口内（含上方已滚过）的块首屏入场；其余（有 IO 时）滚动到再触发
+        if (!hasIO || el.getBoundingClientRect().top < vh) inView.push(el);
+        else {
+          if (!observer) {
+            observer = new IntersectionObserver(
+              (entries, obs) => {
+                for (const e of entries) {
+                  if (!e.isIntersecting) continue;
+                  const t = e.target as HTMLElement;
+                  obs.unobserve(t);
+                  trigger(t, 0); // 滚动进入的块逐个触发，不错峰
+                }
+              },
+              { threshold: 0.08 },
+            );
+          }
+          observer.observe(el);
+        }
       });
 
-      if (pending.length && typeof IntersectionObserver !== "undefined") {
-        observer = new IntersectionObserver(
-          (entries, obs) => {
-            for (const e of entries) {
-              if (!e.isIntersecting) continue;
-              const el = e.target as HTMLElement;
-              obs.unobserve(el);
-              trigger(el, 0); // 滚动进入的块逐个触发，不再错峰
-            }
-          },
-          { threshold: 0.08 },
-        );
-        pending.forEach((el) => observer!.observe(el));
-      } else if (pending.length) {
-        // 无 IO 支持：直接全部入场
-        pending.forEach((el) => trigger(el, 0));
-      }
+      // 关键：把入场推迟到下一帧。隐藏态需先被绘制一帧，过渡才会真正播放，
+      // 否则隐藏态与可见态在同一帧内确定，浏览器直接以可见态绘制（“直接摆着”）。
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        inView.forEach((el, i) => trigger(el, i));
+      });
     };
 
     apply(readReadingMotion());
