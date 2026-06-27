@@ -560,7 +560,9 @@ aside .grp {
 .about-prose ol { list-style: decimal; }
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* minmax(0,1fr)：列默认 min-width:auto 不收缩，数字/标签会把列顶破撑出网格；
+     用 0 下限让四列始终等分容器、不溢出 */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
