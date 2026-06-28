@@ -748,11 +748,13 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 }
 .body details[open] > summary::before { transform: rotate(90deg); }
 .body details > summary:hover { color: var(--accent); }
-.body details > *:not(summary) { padding: 0 16px; }
-/* 首块与 summary 的间距用 padding（而非 margin）——预览面板的
-   .admin .ed-pv p/ul 规则会以更高优先级把 margin-top 清零，padding 不受影响 */
-.body details > summary + * { padding-top: 14px; }
-.body details > *:last-child { margin-bottom: 14px; }
+/* 折叠框正文统一裹进 .details-body（由 rehypeWrapDetailsBody 注入），
+   内边距施加在这一个容器上，代码块背景/列表圆点等才会一起内缩。
+   首/末子元素清零外边距（高优先级，盖过预览面板 .ed-pv 的 margin 规则），
+   由容器 padding 控制上下间距。 */
+.body details > .details-body { padding: 14px 16px; }
+.body details > .details-body > :first-child { margin-top: 0; }
+.body details > .details-body > :last-child { margin-bottom: 0; }
 
 /* 提示框 */
 .body .callout {

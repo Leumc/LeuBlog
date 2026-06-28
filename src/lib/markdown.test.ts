@@ -49,3 +49,20 @@ describe("<markdown> 标签：强制把内容当 Markdown 渲染", () => {
     expect(html).toContain("<strong>x</strong>");
   });
 });
+
+describe("折叠框正文包裹", () => {
+  it("summary 之外的内容被裹进 .details-body", async () => {
+    const html = await renderMarkdown(
+      "<details>\n<summary>标题</summary>\n<markdown>\n\n- 甲\n- 乙\n\n</markdown>\n</details>",
+    );
+    expect(html).toContain('class="details-body"');
+    // summary 仍是 details 的直接子节点，列表被包进 details-body
+    expect(html).toMatch(/<summary>标题<\/summary>\s*<div class="details-body">/);
+    expect(html).toContain("<li>甲</li>");
+  });
+
+  it("只有 summary、无正文时不注入包裹", async () => {
+    const html = await renderMarkdown("<details>\n<summary>仅标题</summary>\n</details>");
+    expect(html).not.toContain("details-body");
+  });
+});

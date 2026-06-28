@@ -756,11 +756,13 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 }
 .body details[open] > summary::before { transform: rotate(90deg); }
 .body details > summary:hover { color: var(--accent); }
-.body details > *:not(summary) { padding: 0 16px; }
-/* 首块与 summary 的间距用 padding（而非 margin）——预览面板的
-   .admin .ed-pv p/ul 规则会以更高优先级把 margin-top 清零，padding 不受影响 */
-.body details > summary + * { padding-top: 14px; }
-.body details > *:last-child { margin-bottom: 14px; }
+/* 折叠框正文统一裹进 .details-body（由 rehypeWrapDetailsBody 注入），
+   内边距施加在这一个容器上，代码块背景/列表圆点等才会一起内缩。
+   首/末子元素清零外边距（高优先级，盖过预览面板 .ed-pv 的 margin 规则），
+   由容器 padding 控制上下间距。 */
+.body details > .details-body { padding: 14px 16px; }
+.body details > .details-body > :first-child { margin-top: 0; }
+.body details > .details-body > :last-child { margin-bottom: 0; }
 
 /* 提示框 */
 .body .callout {
@@ -1551,20 +1553,20 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
 <p>这是一篇演示文章，把目前支持的所有「HTML 增强排版」都用一遍。你可以把本文件的内容整段粘贴进后台「新建文章」的 Markdown 源里，右侧实时预览即可看到效果。</p>
 <h2 id="一折叠框-details">一、折叠框 <code>&#x3C;details></code></h2>
 <p>折叠框默认收起，点击标题展开。下面这个是<strong>收起</strong>状态：</p>
-<details>
-<summary>点我展开：折叠框里也能写 Markdown</summary>
+<details><summary>点我展开：折叠框里也能写 Markdown</summary><div class="details-body">
+
 <p>折叠内容里可以正常使用 <strong>加粗</strong>、<em>斜体</em>、<code>行内代码</code>，以及列表：</p>
 <ul>
 <li>第一点</li>
 <li>第二点</li>
 <li>第三点</li>
 </ul>
-</details>
+</div></details>
 <p>下面这个用 <code>open</code> 属性让它<strong>默认展开</strong>：</p>
-<details open>
-<summary>默认展开的折叠框</summary>
+<details open><summary>默认展开的折叠框</summary><div class="details-body">
+
 <p>适合放「重要补充」「延伸阅读」，读者一眼就能看到，但又能手动收起。</p>
-</details>
+</div></details>
 <h2 id="二提示框-callout">二、提示框 <code>callout</code></h2>
 <p>三种语义，左侧色条 + 图标各不相同：</p>
 <div class="callout info">
@@ -1597,11 +1599,11 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
 <h2 id="五markdown-标签是什么">五、<code>&#x3C;markdown></code> 标签是什么？</h2>
 <p>HTML 标签<strong>内部</strong>紧贴书写的 Markdown，默认不会被解析（会原样显示 <code>**这样**</code>）。把内容用 <code>&#x3C;p>…&#x3C;/p></code> 包起来，就会强制按 Markdown 渲染。上面的折叠框、提示框、分栏内部都用到了它。</p>
 <p>折叠框里也能放代码块：</p>
-<details>
-<summary>查看示例代码</summary>
+<details><summary>查看示例代码</summary><div class="details-body">
+
 <figure data-rehype-pretty-code-figure=""><pre tabindex="0" data-language="python" data-theme="leu-dark"><code data-language="python" data-theme="leu-dark" style="display: grid;"><span data-line=""><span style="color:#EC8C7C">def</span><span style="color:#B9A6F0"> greet</span><span style="color:#E9E2D4">(name: </span><span style="color:#6FD0C4">str</span><span style="color:#E9E2D4">) -> </span><span style="color:#6FD0C4">str</span><span style="color:#E9E2D4">:</span></span>
 <span data-line=""><span style="color:#EC8C7C">    return</span><span style="color:#EC8C7C"> f</span><span style="color:#B6D77A">"你好，</span><span style="color:#B6D77A">{</span><span style="color:#E9E2D4">name</span><span style="color:#B6D77A">}</span><span style="color:#B6D77A">！"</span></span></code></pre></figure>
-</details>
+</div></details>
 <h2 id="六混合使用">六、混合使用</h2>
 <p>普通 Markdown 与 HTML 组件可以自由混排：正文 <span class="badge">提示</span> 之后接一个折叠框，再接一段普通段落，都没有问题。</p>
     </article>

@@ -68,6 +68,46 @@ const LEU_CODE_THEME = {
   ],
 };
 
+type HastNode = {
+  type?: string;
+  tagName?: string;
+  value?: string;
+  properties?: { className?: unknown };
+  children?: HastNode[];
+};
+
+/**
+ * 把 <details> 里 summary 之外的所有内容裹进一个 <div class="details-body">。
+ * 这样折叠框的内边距施加在「单一容器」上——代码块背景、列表圆点等带自身
+ * 盒子/标记的元素也会随之内缩，而不是各自贴到折叠框边界。
+ */
+function rehypeWrapDetailsBody() {
+  const isSummary = (c: HastNode) => c.type === "element" && c.tagName === "summary";
+  const walk = (node: HastNode) => {
+    if (node.type === "element" && node.tagName === "details" && node.children) {
+      const summaries = node.children.filter(isSummary);
+      const rest = node.children.filter((c) => !isSummary(c));
+      const hasContent = rest.some(
+        (c) => c.type === "element" || (c.type === "text" && (c.value ?? "").trim() !== ""),
+      );
+      const already =
+        rest.length === 1 &&
+        rest[0].type === "element" &&
+        rest[0].tagName === "div" &&
+        Array.isArray(rest[0].properties?.className) &&
+        (rest[0].properties!.className as string[]).includes("details-body");
+      if (hasContent && !already) {
+        node.children = [
+          ...summaries,
+          { type: "element", tagName: "div", properties: { className: ["details-body"] }, children: rest },
+        ];
+      }
+    }
+    node.children?.forEach(walk);
+  };
+  return (tree: HastNode) => walk(tree);
+}
+
 /** 核心管线：Markdown → HTML（GFM + LaTeX + 语法高亮 + 原始 HTML）。 */
 async function runPipeline(md: string): Promise<string> {
   const file = await unified()
@@ -82,6 +122,7 @@ async function runPipeline(md: string): Promise<string> {
       theme: LEU_CODE_THEME as unknown as PrettyCodeOptions["theme"],
       keepBackground: false, // 背景由自定义 CSS 控制（#272320）
     })
+    .use(rehypeWrapDetailsBody)
     .use(rehypeStringify)
     .process(md);
   return String(file);
