@@ -707,6 +707,104 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .body th, .body td { border: 1px solid var(--rule); padding: 8px 12px; text-align: left; }
 .body th { background: var(--paper-2); }
 .body hr { border: none; border-top: 1px solid var(--rule); margin: 30px 0; }
+
+/* ============================================================
+   文章内 HTML 预置组件（纸感风格）——前台与后台预览共用 .body
+   ============================================================ */
+
+/* 折叠框 */
+.body details {
+  margin: 22px 0;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 5px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.body details > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 11px 16px;
+  background: var(--paper-2);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  user-select: none;
+}
+.body details > summary::-webkit-details-marker { display: none; }
+.body details > summary::before {
+  content: "\25B8"; /* ▸ */
+  color: var(--accent);
+  font-size: 12px;
+  transition: transform 0.18s ease;
+}
+.body details[open] > summary::before { transform: rotate(90deg); }
+.body details > summary:hover { color: var(--accent); }
+.body details > *:not(summary) { padding: 0 16px; }
+.body details > summary + * { margin-top: 14px; }
+.body details > *:last-child { margin-bottom: 14px; }
+
+/* 提示框 */
+.body .callout {
+  margin: 22px 0;
+  padding: 12px 16px 12px 44px;
+  position: relative;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  color: var(--ink-soft);
+}
+.body .callout::before {
+  content: "\2139"; /* ℹ 默认 info */
+  position: absolute;
+  left: 15px;
+  top: 12px;
+  font-size: 16px;
+  color: var(--accent);
+  font-style: normal;
+}
+.body .callout > :first-child { margin-top: 0; }
+.body .callout > :last-child { margin-bottom: 0; }
+.body .callout.info { border-left-color: var(--accent); }
+.body .callout.info::before { content: "\2139"; color: var(--accent); }
+.body .callout.warn { border-left-color: var(--gold); }
+.body .callout.warn::before { content: "\26A0"; color: var(--gold); } /* ⚠ */
+.body .callout.tip { border-left-color: var(--accent-2); }
+.body .callout.tip::before { content: "\2726"; color: var(--accent-2); } /* ✦ */
+
+/* 徽章 */
+.body .badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72em;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  padding: 1px 8px;
+  margin: 0 2px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  vertical-align: middle;
+}
+
+/* 分栏 */
+.body .cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin: 22px 0;
+}
+.body .cols > * { margin: 0; }
+@media (max-width: 720px) {
+  .body .cols { grid-template-columns: 1fr; gap: 0; }
+}
+
 .katex-display { margin: 24px 0; overflow-x: auto; overflow-y: hidden; padding: 6px 0; }
 
 /* 代码块（rehype-pretty-code 输出 figure>pre>code，注入 .bar） */
