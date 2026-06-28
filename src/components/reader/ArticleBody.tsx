@@ -10,6 +10,30 @@ import {
 /** 文本块（逐字打字）；其余块（代码/图片/表格/分隔线）走淡入浮现。 */
 const TEXT_TAGS = new Set(["P", "H1", "H2", "H3", "H4", "UL", "OL", "BLOCKQUOTE"]);
 const TYPE_SPEED_MS = 18;
+export const READING_MOTION_ARMING_CLASS = "rm-arming";
+
+export function scheduleAfterNextPaint(
+  raf: typeof requestAnimationFrame,
+  cb: FrameRequestCallback,
+  onFrameId?: (id: number) => void,
+): number {
+  const first = raf(() => {
+    const second = raf(cb);
+    onFrameId?.(second);
+  });
+  onFrameId?.(first);
+  return first;
+}
+
+export function armInitialMotionState(
+  root: Pick<HTMLElement, "classList" | "offsetHeight">,
+  blocks: HTMLElement[],
+  isTw: (el: HTMLElement) => boolean,
+): void {
+  root.classList.add(READING_MOTION_ARMING_CLASS);
+  blocks.forEach((el) => el.classList.add(isTw(el) ? "tw-pending" : "reveal"));
+  void root.offsetHeight;
+}
 
 /** 被打字接管的文本节点：换成一个逐字填充的 span，记下全文以便还原。 */
 type TwRec = { on: HTMLElement; full: string };
@@ -142,6 +166,7 @@ export default function ArticleBody({ html }: { html: string }) {
       startTimers.clear();
       observer?.disconnect();
       observer = null;
+      root.classList.remove(READING_MOTION_ARMING_CLASS);
       blocks.forEach(resetBlock);
     };
 
@@ -234,8 +259,9 @@ export default function ArticleBody({ html }: { html: string }) {
         }
       };
 
-      // 先打上初始隐藏态（浮入：opacity0 下移；打字：隐藏占位保留高度）
-      blocks.forEach((el) => el.classList.add(isTw(el) ? "tw-pending" : "reveal"));
+      // 先打上初始隐藏态（浮入：opacity0 下移；打字：隐藏占位保留高度）。
+      // arming 状态临时关闭 transition，避免已可见块先过渡到隐藏态，吞掉后续浮入。
+      armInitialMotionState(root, blocks, isTw);
 
       const vh = window.innerHeight || document.documentElement.clientHeight;
       const hasIO = typeof IntersectionObserver !== "undefined";
@@ -261,11 +287,14 @@ export default function ArticleBody({ html }: { html: string }) {
         }
       });
 
-      // 关键：把入场推迟到下一帧。隐藏态需先被绘制一帧，过渡才会真正播放，
+      // 关键：把入场推迟到下一次绘制之后。隐藏态需先被绘制一帧，过渡才会真正播放，
       // 否则隐藏态与可见态在同一帧内确定，浏览器直接以可见态绘制（“直接摆着”）。
-      rafId = requestAnimationFrame(() => {
+      rafId = scheduleAfterNextPaint(requestAnimationFrame, () => {
         rafId = 0;
+        root.classList.remove(READING_MOTION_ARMING_CLASS);
         inView.forEach((el, i) => trigger(el, i));
+      }, (id) => {
+        rafId = id;
       });
     };
 
