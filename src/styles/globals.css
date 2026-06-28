@@ -721,6 +721,8 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   background: var(--paper);
   overflow: hidden;
 }
+/* 收起态：整框底色与 summary 一致，避免圆角/边框处露出更浅的正文底色 */
+.body details:not([open]) { background: var(--paper-2); }
 .body details > summary {
   list-style: none;
   cursor: pointer;
@@ -735,6 +737,8 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   gap: 9px;
   user-select: none;
 }
+/* 展开态：标题与正文之间一道分隔线 */
+.body details[open] > summary { border-bottom: 1px solid var(--rule); }
 .body details > summary::-webkit-details-marker { display: none; }
 .body details > summary::before {
   content: "\25B8"; /* ▸ */

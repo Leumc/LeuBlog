@@ -24,3 +24,28 @@ describe("renderMarkdown HTML 支持", () => {
     expect(html).toContain("段落");
   });
 });
+
+describe("<markdown> 标签：强制把内容当 Markdown 渲染", () => {
+  it("行内：紧贴 HTML 标签内部的 Markdown 也会被解析", async () => {
+    const html = await renderMarkdown(
+      '<div class="cols">\n<div><markdown>左栏 **加粗** 文本</markdown></div>\n<div>右栏</div>\n</div>',
+    );
+    expect(html).toContain('class="cols"');
+    expect(html).toContain("<strong>加粗</strong>");
+  });
+
+  it("块级：列表等块级 Markdown 在标签内被解析", async () => {
+    const html = await renderMarkdown(
+      "<markdown>\n- 甲\n- 乙\n</markdown>",
+    );
+    expect(html).toContain("<ul>");
+    expect(html).toContain("<li>甲</li>");
+  });
+
+  it("不会在输出里残留 <markdown> 标签本身", async () => {
+    const html = await renderMarkdown("<markdown>**x**</markdown>");
+    expect(html).not.toContain("<markdown>");
+    expect(html).not.toContain("</markdown>");
+    expect(html).toContain("<strong>x</strong>");
+  });
+});

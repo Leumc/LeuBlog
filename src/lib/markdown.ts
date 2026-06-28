@@ -68,8 +68,8 @@ const LEU_CODE_THEME = {
   ],
 };
 
-/** 把 Markdown 渲染为 HTML 字符串（服务端）：GFM + LaTeX + 语法高亮 */
-export async function renderMarkdown(md: string): Promise<string> {
+/** 核心管线：Markdown → HTML（GFM + LaTeX + 语法高亮 + 原始 HTML）。 */
+async function runPipeline(md: string): Promise<string> {
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
@@ -85,6 +85,39 @@ export async function renderMarkdown(md: string): Promise<string> {
     .use(rehypeStringify)
     .process(md);
   return String(file);
+}
+
+/** 去掉公共行首缩进——HTML 里缩进的 <markdown> 内容不会被当成代码块。 */
+function dedent(s: string): string {
+  const lines = s.replace(/^\n+/, "").replace(/\s+$/, "").split("\n");
+  const indents = lines
+    .filter((l) => l.trim())
+    .map((l) => l.match(/^[ \t]*/)![0].length);
+  const min = indents.length ? Math.min(...indents) : 0;
+  return lines.map((l) => l.slice(min)).join("\n");
+}
+
+/**
+ * 非标准 <markdown>…</markdown> 标签：把其中内容强制按 Markdown 渲染后内联回去。
+ * 用于在 HTML 标签内部（如 <div class="cols">、<details>）写紧贴标签、未被空行
+ * 分隔的 Markdown——CommonMark 原本会把这些内容当作原始 HTML 不予解析。
+ * 用否定先行断言匹配「不含嵌套 markdown 标签」的最内层，循环替换以支持嵌套。
+ */
+async function expandMarkdownTags(src: string): Promise<string> {
+  const re = /<markdown>((?:(?!<\/?markdown>)[\s\S])*?)<\/markdown>/i;
+  let out = src;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(out)) !== null) {
+    const rendered = await runPipeline(dedent(m[1]));
+    out = out.slice(0, m.index) + rendered + out.slice(m.index + m[0].length);
+  }
+  return out;
+}
+
+/** 把 Markdown 渲染为 HTML 字符串（服务端）：GFM + LaTeX + 语法高亮 + <markdown> 标签 */
+export async function renderMarkdown(md: string): Promise<string> {
+  const expanded = await expandMarkdownTags(md);
+  return runPipeline(expanded);
 }
 
 /** 提取 h1–h4 目录，slug 规则与 rehype-slug 一致（github-slugger）。
