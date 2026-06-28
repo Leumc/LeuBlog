@@ -169,17 +169,40 @@ export function extractToc(md: string): TocItem[] {
   const slugger = new GithubSlugger();
   const items: TocItem[] = [];
 
-  type Node = { type: string; depth?: number; children?: Node[]; value?: string };
+  type Node = {
+    type: string;
+    depth?: number;
+    children?: Node[];
+    value?: string;
+    position?: { start?: { offset?: number } };
+  };
   const text = (n: Node): string => {
     if (n.value) return n.value;
     if (n.children) return n.children.map(text).join("");
     return "";
   };
 
+  // <markdown> 区段的字符范围：其中的标题不进目录（属于折叠框/分栏等组件内部，
+  // 不应出现在文章大纲里）。但仍照常推进 slugger 计数，与 rehype-slug 在「展开后」
+  // 整篇文档上的去重保持一致，避免剩余标题的锚点 id 错位。
+  const mdRanges: Array<[number, number]> = [];
+  const rangeRe = /<markdown>[\s\S]*?<\/markdown>/gi;
+  let rm: RegExpExecArray | null;
+  while ((rm = rangeRe.exec(md)) !== null) {
+    mdRanges.push([rm.index, rm.index + rm[0].length]);
+  }
+  const insideMarkdownTag = (n: Node) => {
+    const s = n.position?.start?.offset;
+    return s !== undefined && mdRanges.some(([a, b]) => s >= a && s < b);
+  };
+
   const walk = (n: Node) => {
     if (n.type === "heading" && n.depth && n.depth >= 1 && n.depth <= 4) {
       const t = text(n).trim();
-      if (t) items.push({ id: slugger.slug(t), text: t, level: n.depth });
+      if (t) {
+        const id = slugger.slug(t); // 始终推进计数
+        if (!insideMarkdownTag(n)) items.push({ id, text: t, level: n.depth });
+      }
     }
     n.children?.forEach(walk);
   };

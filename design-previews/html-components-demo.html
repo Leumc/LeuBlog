@@ -18,6 +18,7 @@
 :root {
   --paper: #faf7f1;
   --paper-2: #f6efe2;
+  --paper-3: #ece2cd; /* 更深的纸色：用于折叠框/提示框底色，与正文背景拉开层次 */
   --ink: #2c2620;
   --ink-soft: #544e44;
   --ink-soft-2: #5d564b;
@@ -726,16 +727,14 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
   border-radius: 5px;
-  background: var(--paper);
+  background: var(--paper-3); /* 整框（含展开后正文区）用更深纸色，与背景拉开 */
   overflow: hidden;
 }
-/* 收起态：整框底色与 summary 一致，避免圆角/边框处露出更浅的正文底色 */
-.body details:not([open]) { background: var(--paper-2); }
 .body details > summary {
   list-style: none;
   cursor: pointer;
   padding: 11px 16px;
-  background: var(--paper-2);
+  background: var(--paper-3);
   font-family: var(--sans);
   font-weight: 600;
   font-size: 15px;
@@ -769,7 +768,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   margin: 22px 0;
   padding: 12px 16px 12px 44px;
   position: relative;
-  background: var(--paper-2);
+  background: var(--paper-3);
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
   border-radius: 4px;

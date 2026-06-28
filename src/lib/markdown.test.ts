@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderMarkdown } from "./markdown";
+import { renderMarkdown, extractToc } from "./markdown";
 
 describe("renderMarkdown HTML 支持", () => {
   it("保留 details/summary 折叠框标签", async () => {
@@ -64,5 +64,31 @@ describe("折叠框正文包裹", () => {
   it("只有 summary、无正文时不注入包裹", async () => {
     const html = await renderMarkdown("<details>\n<summary>仅标题</summary>\n</details>");
     expect(html).not.toContain("details-body");
+  });
+});
+
+describe("extractToc：<markdown> 内的标题不进目录", () => {
+  it("排除 <markdown> 里的标题，保留正文标题且锚点不错位", async () => {
+    const md = [
+      "# 正文一",
+      "",
+      "<details>",
+      "<summary>折叠</summary>",
+      "<markdown>",
+      "",
+      "## 折叠里的标题",
+      "",
+      "</markdown>",
+      "</details>",
+      "",
+      "## 正文二",
+    ].join("\n");
+    const toc = extractToc(md);
+    const texts = toc.map((t) => t.text);
+    expect(texts).toEqual(["正文一", "正文二"]);
+    // 正文二 的锚点 id 应与渲染产物里的 id 一致
+    const html = await renderMarkdown(md);
+    const tail = toc.find((t) => t.text === "正文二")!;
+    expect(html).toContain(`id="${tail.id}"`);
   });
 });
