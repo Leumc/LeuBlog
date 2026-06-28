@@ -18,7 +18,8 @@
 :root {
   --paper: #faf7f1;
   --paper-2: #f6efe2;
-  --paper-3: #ece2cd; /* 更深的纸色：用于折叠框/提示框底色，与正文背景拉开层次 */
+  /* 偏强调色的纸底：以最浅纸色为底更明亮，轻染强调色 8%；随强调色切换重算 */
+  --paper-accent: color-mix(in srgb, var(--paper), var(--accent) 8%);
   --ink: #2c2620;
   --ink-soft: #544e44;
   --ink-soft-2: #5d564b;
@@ -727,14 +728,16 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
   border-radius: 5px;
-  background: var(--paper-3); /* 整框（含展开后正文区）用更深纸色，与背景拉开 */
+  background: var(--paper-2); /* 展开后正文区：浅纸色，比背景略深以保留层次 */
   overflow: hidden;
 }
+/* 收起态整框与标题一致，避免圆角处露底 */
+.body details:not([open]) { background: var(--paper-accent); }
 .body details > summary {
   list-style: none;
   cursor: pointer;
   padding: 11px 16px;
-  background: var(--paper-3);
+  background: var(--paper-accent); /* 标题：8% 强调色 */
   font-family: var(--sans);
   font-weight: 600;
   font-size: 15px;
@@ -768,7 +771,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   margin: 22px 0;
   padding: 12px 16px 12px 44px;
   position: relative;
-  background: var(--paper-3);
+  background: var(--paper-accent); /* 默认/info：偏强调色 8% */
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
   border-radius: 4px;
@@ -787,9 +790,16 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .body .callout > :last-child { margin-bottom: 0; }
 .body .callout.info { border-left-color: var(--accent); }
 .body .callout.info::before { content: "\2139"; color: var(--accent); }
-.body .callout.warn { border-left-color: var(--gold); }
+/* warn/tip 各自的底色也朝自身语义色靠拢 */
+.body .callout.warn {
+  border-left-color: var(--gold);
+  background: color-mix(in srgb, var(--paper), var(--gold) 16%);
+}
 .body .callout.warn::before { content: "\26A0"; color: var(--gold); } /* ⚠ */
-.body .callout.tip { border-left-color: var(--accent-2); }
+.body .callout.tip {
+  border-left-color: var(--accent-2);
+  background: color-mix(in srgb, var(--paper), var(--accent-2) 14%);
+}
 .body .callout.tip::before { content: "\2726"; color: var(--accent-2); } /* ✦ */
 
 /* 徽章 */
