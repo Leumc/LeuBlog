@@ -212,6 +212,27 @@ export default function PostEditor({
             ≔
           </button>
           <span className="gap" />
+          <button
+            type="button"
+            title="折叠框"
+            onClick={() =>
+              insert(
+                "\n<details>\n<summary>标题</summary>\n\n内容\n\n</details>\n",
+              )
+            }
+          >
+            ▸
+          </button>
+          <button
+            type="button"
+            title="提示框"
+            onClick={() =>
+              insert('\n<div class="callout info">\n\n提示内容\n\n</div>\n')
+            }
+          >
+            ⚑
+          </button>
+          <span className="gap" />
           <label
             title="上传图片"
             style={{
