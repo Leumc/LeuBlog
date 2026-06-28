@@ -757,7 +757,9 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .body details[open] > summary::before { transform: rotate(90deg); }
 .body details > summary:hover { color: var(--accent); }
 .body details > *:not(summary) { padding: 0 16px; }
-.body details > summary + * { margin-top: 14px; }
+/* 首块与 summary 的间距用 padding（而非 margin）——预览面板的
+   .admin .ed-pv p/ul 规则会以更高优先级把 margin-top 清零，padding 不受影响 */
+.body details > summary + * { padding-top: 14px; }
 .body details > *:last-child { margin-bottom: 14px; }
 
 /* 提示框 */
