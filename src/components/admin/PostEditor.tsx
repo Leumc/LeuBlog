@@ -232,6 +232,31 @@ export default function PostEditor({
           >
             ⚑
           </button>
+          <button
+            type="button"
+            title="分栏"
+            onClick={() =>
+              insert(
+                '\n<div class="cols">\n<div><markdown>\n\n左栏内容\n\n</markdown></div>\n<div><markdown>\n\n右栏内容\n\n</markdown></div>\n</div>\n',
+              )
+            }
+          >
+            ▥
+          </button>
+          <button
+            type="button"
+            title="徽章"
+            onClick={() => insert('<span class="badge">标记</span>')}
+          >
+            ⬡
+          </button>
+          <button
+            type="button"
+            title="Markdown 区块（强制把内容当 Markdown 渲染）"
+            onClick={() => insert("<markdown>\n\n内容\n\n</markdown>")}
+          >
+            M↓
+          </button>
           <span className="gap" />
           <label
             title="上传图片"
