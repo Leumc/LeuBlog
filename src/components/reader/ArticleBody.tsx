@@ -8,9 +8,28 @@ import {
 } from "@/lib/reading-motion";
 
 /** 文本块（逐字打字）；其余块（代码/图片/表格/分隔线）走淡入浮现。 */
-const TEXT_TAGS = new Set(["P", "H1", "H2", "H3", "H4", "UL", "OL", "BLOCKQUOTE"]);
+const TEXT_TAGS = new Set(["P", "H1", "H2", "H3", "H4", "LI", "BLOCKQUOTE"]);
 const TYPE_SPEED_MS = 18;
 export const READING_MOTION_ARMING_CLASS = "rm-arming";
+
+export function shouldUseTypewriterBlock(tagName: string): boolean {
+  return TEXT_TAGS.has(tagName.toUpperCase());
+}
+
+export function getMotionBlocks(
+  children: HTMLElement[],
+  mode: ReadingMotion,
+): HTMLElement[] {
+  if (mode !== "typewriter") return children;
+
+  return children.flatMap((el) => {
+    const tag = el.tagName.toUpperCase();
+    if (tag !== "UL" && tag !== "OL") return [el];
+    return Array.from(el.children).filter(
+      (child): child is HTMLElement => (child as HTMLElement).tagName?.toUpperCase() === "LI",
+    );
+  });
+}
 
 export function scheduleAfterNextPaint(
   raf: typeof requestAnimationFrame,
@@ -130,8 +149,6 @@ export default function ArticleBody({ html }: { html: string }) {
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    const blocks = Array.from(root.children) as HTMLElement[];
-
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -167,7 +184,9 @@ export default function ArticleBody({ html }: { html: string }) {
       observer?.disconnect();
       observer = null;
       root.classList.remove(READING_MOTION_ARMING_CLASS);
-      blocks.forEach(resetBlock);
+      const rootChildren = Array.from(root.children) as HTMLElement[];
+      const typewriterBlocks = getMotionBlocks(rootChildren, "typewriter");
+      Array.from(new Set([...rootChildren, ...typewriterBlocks])).forEach(resetBlock);
     };
 
     /**
@@ -237,8 +256,10 @@ export default function ArticleBody({ html }: { html: string }) {
       const effective: ReadingMotion = reduced ? "off" : mode;
       if (effective === "off") return;
 
+      const blocks = getMotionBlocks(Array.from(root.children) as HTMLElement[], effective);
+
       const isTw = (el: HTMLElement) =>
-        effective === "typewriter" && TEXT_TAGS.has(el.tagName);
+        effective === "typewriter" && shouldUseTypewriterBlock(el.tagName);
 
       /** 触发一个块的入场；order 用于首屏自上而下的错峰。 */
       const trigger = (el: HTMLElement, order: number) => {

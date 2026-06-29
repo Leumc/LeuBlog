@@ -1,5 +1,6 @@
 # 可视化评审的临时服务器目录（预览定稿已归档到 design-previews/）
 .superpowers/
+AGENTS.md
 
 # 依赖与构建产物（正式脚手架后生效）
 node_modules/

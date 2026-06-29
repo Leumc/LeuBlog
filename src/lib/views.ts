@@ -14,9 +14,16 @@ export function today(): string {
 export async function recordView(postId: string): Promise<void> {
   const date = today();
   await prisma.$transaction(async (tx) => {
+    const post = await tx.post.findUniqueOrThrow({
+      where: { id: postId },
+      select: { updatedAt: true },
+    });
     await tx.post.update({
       where: { id: postId },
-      data: { viewCount: { increment: 1 } },
+      data: {
+        viewCount: { increment: 1 },
+        updatedAt: post.updatedAt,
+      },
     });
     await tx.dailyView.upsert({
       where: { date_postId: { date, postId } },

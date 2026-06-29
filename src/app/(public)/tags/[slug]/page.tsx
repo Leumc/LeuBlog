@@ -56,7 +56,7 @@ export default async function TagDetailPage({
         </div>
       </div>
 
-      <div className="wrap" style={{ padding: "30px 0 50px" }}>
+      <div className="wrap tag-detail-list">
         {posts.map((p) => (
           <article className="entry" key={p.id}>
             {(p.category || p.tags[0]) && (

@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   READING_MOTION_ARMING_CLASS,
   armInitialMotionState,
+  getMotionBlocks,
   scheduleAfterNextPaint,
+  shouldUseTypewriterBlock,
 } from "./ArticleBody";
 
 describe("scheduleAfterNextPaint", () => {
@@ -56,6 +58,36 @@ describe("armInitialMotionState", () => {
       `root:add:${READING_MOTION_ARMING_CLASS}`,
       "block:add:reveal",
       "root:measure",
+    ]);
+  });
+});
+
+describe("shouldUseTypewriterBlock", () => {
+  it("keeps list containers out of typewriter mode so list items are not grouped as one block", () => {
+    expect(shouldUseTypewriterBlock("P")).toBe(true);
+    expect(shouldUseTypewriterBlock("H2")).toBe(true);
+    expect(shouldUseTypewriterBlock("LI")).toBe(true);
+    expect(shouldUseTypewriterBlock("UL")).toBe(false);
+    expect(shouldUseTypewriterBlock("OL")).toBe(false);
+  });
+});
+
+describe("getMotionBlocks", () => {
+  it("splits direct list items into independent typewriter blocks", () => {
+    const paragraph = { tagName: "P" };
+    const firstItem = { tagName: "LI" };
+    const secondItem = { tagName: "LI" };
+    const list = {
+      tagName: "OL",
+      children: [firstItem, secondItem],
+    };
+
+    expect(
+      getMotionBlocks([paragraph, list] as unknown as HTMLElement[], "typewriter"),
+    ).toEqual([paragraph, firstItem, secondItem]);
+    expect(getMotionBlocks([paragraph, list] as unknown as HTMLElement[], "reveal")).toEqual([
+      paragraph,
+      list,
     ]);
   });
 });

@@ -475,6 +475,7 @@ aside .grp {
 .subfilter a.on:hover { color: #fff; }
 
 .layout-cat { display: grid; grid-template-columns: 1fr 250px; gap: 48px; padding-block: 30px 50px; }
+.tag-detail-list { padding-block: 30px 50px; }
 .entry .top { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-2); font-family: Georgia, serif; }
 .entry h3 { font-size: 24px; margin: 6px 0 7px; font-weight: 600; line-height: 1.35; }
 .entry h3 a:hover { color: var(--accent); }
@@ -644,7 +645,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
   transform: none;
 }
 /* 打字机：进视口前隐藏占位（保留高度，避免闪现全文） */
-.body > .tw-pending { visibility: hidden; }
+.body .tw-pending { visibility: hidden; }
 /* 行内代码框在文字打到之前不显示，随打字一起长出 */
 .body :not(pre) > code:has(> .tw-on:empty) {
   background: transparent;
@@ -660,7 +661,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 @keyframes rm-blink { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .body > .reveal { opacity: 1; transform: none; transition: none; }
-  .body > .tw-pending { visibility: visible; }
+  .body .tw-pending { visibility: visible; }
 }
 
 /* 正文 */
@@ -902,7 +903,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .toc .lbl { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #fff; font-family: Georgia, serif; border-bottom: 2px solid rgba(255, 255, 255, 0.4); padding-bottom: 7px; margin-bottom: 10px; }
 .toc a { display: block; font-size: 14px; color: rgba(255, 255, 255, 0.85); padding: 6px 0 6px 12px; border-left: 2px solid rgba(255, 255, 255, 0.25); line-height: 1.4; }
 .toc a:hover { color: #fff; }
-.toc a.on { color: #fff; border-left-color: #fff; font-weight: 600; }
+.toc a.on { color: #fff; border-left-color: #fff; background: rgba(255, 255, 255, 0.08); }
 .toc .share { margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.25); padding-top: 14px; font-size: 13px; color: rgba(255, 255, 255, 0.7); }
 .toc .share .k { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); font-family: Georgia, serif; margin-bottom: 6px; }
 .toc .share a { padding: 0; border: none; color: rgba(255,255,255,0.78); display: inline; }
