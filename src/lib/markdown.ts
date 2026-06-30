@@ -163,9 +163,21 @@ export async function renderMarkdown(md: string): Promise<string> {
 
 /** 提取 h1–h4 目录，slug 规则与 rehype-slug 一致（github-slugger）。
  *  level 保留原始标题层级(1–4)；若文章最高层级 >1（如从 ## 开始），
- *  调用方可据此归一化缩进。 */
-export function extractToc(md: string): TocItem[] {
-  const tree = unified().use(remarkParse).use(remarkGfm).parse(md);
+ *  调用方可据此归一化缩进。
+ *
+ *  必须在「与 renderMarkdown 相同的展开后文本」上解析：否则当 <markdown>
+ *  内含带空行的 ``` 代码块时，remark-parse 会把 <details> HTML 块在首个
+ *  空行处截断，收尾的 ``` 随即把 </markdown>、</details> 及其后所有标题
+ *  吞进一个 code 节点，导致这些标题在 MDAST 里根本不作为 heading 存在，
+ *  自然也就不进目录。先展开 <markdown> 即可让两路解析对齐。
+ *
+ *  slug 计数也只对正文标题推进：<markdown> 内的标题在展开时已由各自独立的
+ *  rehype-slug 生成 id（外层 rehype-slug 见其已有 id 便跳过、不去重），故
+ *  正文标题的锚点与 <markdown> 内标题互不干扰——此处 slugger 同样不应把
+ *  内部标题计入，才能与渲染产物一致。 */
+export async function extractToc(md: string): Promise<TocItem[]> {
+  const expanded = await expandMarkdownTags(md);
+  const tree = unified().use(remarkParse).use(remarkGfm).parse(expanded);
   const slugger = new GithubSlugger();
   const items: TocItem[] = [];
 
@@ -174,7 +186,6 @@ export function extractToc(md: string): TocItem[] {
     depth?: number;
     children?: Node[];
     value?: string;
-    position?: { start?: { offset?: number } };
   };
   const text = (n: Node): string => {
     if (n.value) return n.value;
@@ -182,28 +193,16 @@ export function extractToc(md: string): TocItem[] {
     return "";
   };
 
-  // <markdown> 区段的字符范围：其中的标题不进目录（属于折叠框/分栏等组件内部，
-  // 不应出现在文章大纲里）。但仍照常推进 slugger 计数，与 rehype-slug 在「展开后」
-  // 整篇文档上的去重保持一致，避免剩余标题的锚点 id 错位。
-  const mdRanges: Array<[number, number]> = [];
-  const rangeRe = /<markdown>[\s\S]*?<\/markdown>/gi;
-  let rm: RegExpExecArray | null;
-  while ((rm = rangeRe.exec(md)) !== null) {
-    mdRanges.push([rm.index, rm.index + rm[0].length]);
-  }
-  const insideMarkdownTag = (n: Node) => {
-    const s = n.position?.start?.offset;
-    return s !== undefined && mdRanges.some(([a, b]) => s >= a && s < b);
-  };
-
   const walk = (n: Node) => {
     if (n.type === "heading" && n.depth && n.depth >= 1 && n.depth <= 4) {
       const t = text(n).trim();
       if (t) {
-        const id = slugger.slug(t); // 始终推进计数
-        if (!insideMarkdownTag(n)) items.push({ id, text: t, level: n.depth });
+        const id = slugger.slug(t);
+        items.push({ id, text: t, level: n.depth });
       }
     }
+    // <markdown> 展开后其内部标题已是 raw HTML（<hN id="…">），落在 html 节点
+    // 里——既不会作为 heading 节点进目录，也不推进 slugger 计数（见上）。
     n.children?.forEach(walk);
   };
   walk(tree as unknown as Node);
