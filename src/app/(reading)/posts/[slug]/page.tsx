@@ -54,7 +54,7 @@ export default async function PostPage({
   }
 
   const html = await renderMarkdown(post.content);
-  const toc = extractToc(post.content);
+  const toc = await extractToc(post.content);
   const readMin = Math.max(1, Math.round(post.content.length / 400));
 
   // 作者为管理员时显示「<设置的管理员名 或 作者本名>（管理员）」
