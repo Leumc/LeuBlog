@@ -706,7 +706,7 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 }
 .body blockquote { margin: 24px 0; padding: 6px 22px; border-left: 3px solid var(--accent); color: var(--ink-soft); font-style: italic; background: var(--paper-2); }
 .body blockquote p { margin: 8px 0; }
-.body img { max-width: 100%; height: auto; border: 1px solid var(--rule); }
+.body img { width: 100%; height: auto; border: 1px solid var(--rule); }
 .body table { width: 100%; border-collapse: collapse; font-size: 16px; margin: 0 0 18px; }
 .body th, .body td { border: 1px solid var(--rule); padding: 8px 12px; text-align: left; }
 .body th { background: var(--paper-2); }
