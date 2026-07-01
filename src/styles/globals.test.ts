@@ -14,6 +14,10 @@ function ruleFor(selector: string) {
   return match?.[1] ?? "";
 }
 
+function ruleIndex(selector: string) {
+  return css.indexOf(`${selector} {`);
+}
+
 describe("article column layout", () => {
   it("keeps cols children equal-width and wraps oversized content inside each column", () => {
     expect(ruleFor(".body .cols")).toMatch(/display:\s*flex/);
@@ -35,5 +39,20 @@ describe("tag detail mobile spacing", () => {
 describe("article table of contents active item", () => {
   it("does not change font weight when a heading becomes active", () => {
     expect(ruleFor(".toc a.on")).not.toMatch(/font-weight/);
+  });
+});
+
+describe("article body links", () => {
+  it("marks clickable text with a dashed underline", () => {
+    expect(ruleFor(".body a")).toMatch(/text-decoration-line:\s*underline/);
+    expect(ruleFor(".body a")).toMatch(/text-decoration-style:\s*dashed/);
+  });
+
+  it("keeps dashed underline visible inside the admin preview pane", () => {
+    const previewLinkRule = ruleFor(".admin .ed-pv .body a");
+
+    expect(previewLinkRule).toMatch(/text-decoration-line:\s*underline/);
+    expect(previewLinkRule).toMatch(/text-decoration-style:\s*dashed/);
+    expect(ruleIndex(".admin .ed-pv .body a")).toBeGreaterThan(ruleIndex(".admin a"));
   });
 });

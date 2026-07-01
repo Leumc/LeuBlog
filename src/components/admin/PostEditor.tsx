@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { markdown } from "@codemirror/lang-markdown";
-import { languages } from "@codemirror/language-data";
 import { EditorView } from "@codemirror/view";
 import { savePostAsDraft, publishPost } from "@/app/admin/posts/post-actions";
+import {
+  getMarkdownEditorBasicSetup,
+  getMarkdownEditorExtensions,
+} from "./markdown-editor-config";
 
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), { ssr: false });
 
@@ -61,6 +63,9 @@ export default function PostEditor({
   const [previewHtml, setPreviewHtml] = useState("");
   const [uploading, setUploading] = useState(false);
   const viewRef = useRef<EditorView | null>(null);
+  const handleContentChange = useCallback((value: string) => {
+    setContent(value);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -294,12 +299,12 @@ export default function PostEditor({
           <CodeMirror
             value={content}
             height="520px"
-            extensions={[markdown({ codeLanguages: languages }), EditorView.lineWrapping]}
-            onChange={(v) => setContent(v)}
+            extensions={getMarkdownEditorExtensions()}
+            onChange={handleContentChange}
             onCreateEditor={(view) => {
               viewRef.current = view;
             }}
-            basicSetup={{ lineNumbers: true, foldGutter: false }}
+            basicSetup={getMarkdownEditorBasicSetup()}
           />
           <div className="ed-pv">
             <div className="body" dangerouslySetInnerHTML={{ __html: previewHtml }} />

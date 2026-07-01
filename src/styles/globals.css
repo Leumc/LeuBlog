@@ -691,6 +691,13 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .body p { margin: 0 0 18px; }
 .body p.lead::first-letter { font-size: 58px; float: left; line-height: 0.82; padding: 8px 12px 0 0; color: var(--accent); font-weight: 700; }
 .body strong { color: var(--accent-2); }
+.body a {
+  color: var(--accent);
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
 .body ul, .body ol { margin: 0 0 18px; padding-left: 1.4em; }
 .body ul { list-style: disc; }
 .body ol { list-style: decimal; }
@@ -1223,6 +1230,13 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
 .admin .ed-pv ol { list-style: decimal; }
 .admin .ed-pv li { margin: 5px 0; }
 .admin .ed-pv strong { color: var(--aaccent); }
+.admin .ed-pv .body a {
+  color: var(--aaccent);
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
 .admin .ed-pv :not(pre) > code { font-family: var(--mono); font-size: 0.85em; background: #f3eee2; border: 1px solid #e3dccb; padding: 1px 5px; border-radius: 3px; color: var(--aaccent); }
 .admin .ed-pv blockquote { margin: 16px 0; padding: 6px 18px; border-left: 3px solid var(--aaccent); background: #f6efe2; color: #544e44; font-style: italic; }
 
