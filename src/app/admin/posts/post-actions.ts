@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser, canEditPost } from "@/lib/permissions";
+import { requireUser, requireAdmin, canEditPost } from "@/lib/permissions";
 import { slugify } from "@/lib/utils";
 import { makeExcerpt } from "@/lib/markdown";
 
@@ -106,6 +106,26 @@ export async function deletePost(formData: FormData): Promise<void> {
   if (!post) return;
   if (!canEditPost(user, post.authorId)) throw new Error("无权删除该文章");
   await prisma.post.delete({ where: { id } });
+  revalidatePath("/admin/posts");
+  revalidatePath("/");
+}
+
+export async function resetViews(formData: FormData): Promise<void> {
+  await requireAdmin(); // 仅 ADMIN；EDITOR 调用抛 "需要管理员权限"
+  const id = String(formData.get("id") || "");
+  const post = await prisma.post.findUnique({
+    where: { id },
+    select: { updatedAt: true },
+  });
+  if (!post) return;
+  await prisma.$transaction([
+    prisma.post.update({
+      where: { id },
+      data: { viewCount: 0, updatedAt: post.updatedAt }, // 保 updatedAt，避免顶到当前时间
+    }),
+    prisma.dailyView.deleteMany({ where: { postId: id } }),
+  ]);
+  revalidatePath("/admin");
   revalidatePath("/admin/posts");
   revalidatePath("/");
 }
