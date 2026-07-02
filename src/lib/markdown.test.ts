@@ -178,3 +178,33 @@ describe("extractToc：被 <markdown> 包裹的代码块吞没后续标题", () 
     }
   });
 });
+
+describe("外链新标签页", () => {
+  it("http/https 绝对链接加 target=_blank + rel，其余链接不动", async () => {
+    const md = [
+      "[外链](https://example.com)",
+      "[内链](/posts/inner)",
+      "[锚点](#section)",
+      "[邮件](mailto:a@b.com)",
+    ].join("\n\n");
+    const html = await renderMarkdown(md);
+
+    // 外链：带 target 与 rel
+    expect(html).toMatch(/<a href="https:\/\/example\.com"[^>]*target="_blank"[^>]*>/);
+    expect(html).toMatch(/<a href="https:\/\/example\.com"[^>]*rel="noopener noreferrer"[^>]*>/);
+
+    // 内链：不含 target
+    expect(html).toMatch(/<a href="\/posts\/inner">内链<\/a>/);
+
+    // 锚点：不含 target
+    expect(html).toMatch(/<a href="#section">锚点<\/a>/);
+
+    // mailto：不含 target
+    expect(html).toMatch(/<a href="mailto:a@b\.com">邮件<\/a>/);
+  });
+
+  it("相对链接和锚点绝不被加 target", async () => {
+    const html = await renderMarkdown("[去](/about) [顶](#top)");
+    expect(html).not.toContain("target=");
+  });
+});

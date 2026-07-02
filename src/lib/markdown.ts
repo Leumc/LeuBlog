@@ -72,7 +72,7 @@ type HastNode = {
   type?: string;
   tagName?: string;
   value?: string;
-  properties?: { className?: unknown };
+  properties?: { className?: unknown; href?: unknown; target?: unknown; rel?: unknown };
   children?: HastNode[];
 };
 
@@ -108,6 +108,22 @@ function rehypeWrapDetailsBody() {
   return (tree: HastNode) => walk(tree);
 }
 
+/** 给外链 <a>(http/https 绝对链接)加 target=_blank + rel=noopener noreferrer。
+ *  站内一律相对路径，不判 host；相对链接/锚点/mailto/tel 不动。 */
+function rehypeExternalLinks() {
+  const walk = (node: HastNode) => {
+    if (node.type === "element" && node.tagName === "a" && node.properties) {
+      const href = node.properties.href;
+      if (typeof href === "string" && /^https?:\/\//i.test(href)) {
+        node.properties.target = "_blank";
+        node.properties.rel = "noopener noreferrer";
+      }
+    }
+    node.children?.forEach(walk);
+  };
+  return (tree: HastNode) => walk(tree);
+}
+
 /** 核心管线：Markdown → HTML（GFM + LaTeX + 语法高亮 + 原始 HTML）。 */
 async function runPipeline(md: string): Promise<string> {
   const file = await unified()
@@ -123,6 +139,7 @@ async function runPipeline(md: string): Promise<string> {
       keepBackground: false, // 背景由自定义 CSS 控制（#272320）
     })
     .use(rehypeWrapDetailsBody)
+    .use(rehypeExternalLinks)
     .use(rehypeStringify)
     .process(md);
   return String(file);
