@@ -37,7 +37,7 @@ npm run dev                 # http://localhost:3000
 
 ## 部署
 
-[这里是面向小白的详细部署教程](https://blog.leumc.com/posts/post-1ze155)
+[这里是面向小白的详细部署教程，点击此处跳转](https://blog.leumc.com/posts/post-1ze155)
 
 首先安装`docker`，可以使用官方安装脚本：
 
