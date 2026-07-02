@@ -29,6 +29,7 @@ export default async function NewPostPage() {
       categories={categories}
       taxonomy={taxonomy}
       canLock={user.role === "ADMIN"}
+      canReset={false}
       allKeys={keys.map((k) => ({
         id: k.id,
         label: k.label ?? "",

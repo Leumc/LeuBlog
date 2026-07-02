@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { EditorView } from "@codemirror/view";
-import { savePostAsDraft, publishPost } from "@/app/admin/posts/post-actions";
+import { savePostAsDraft, publishPost, resetViews } from "@/app/admin/posts/post-actions";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { formatViews } from "@/lib/utils";
 import {
   getMarkdownEditorBasicSetup,
   getMarkdownEditorExtensions,
@@ -23,6 +25,7 @@ export type EditorPost = {
   locked: boolean;
   gateNote: string;
   keyIds: string[];
+  viewCount?: number;
 };
 
 export type Taxonomy = {
@@ -36,12 +39,14 @@ export default function PostEditor({
   categories,
   taxonomy,
   canLock,
+  canReset,
   allKeys,
 }: {
   post: EditorPost;
   categories: { id: string; name: string }[];
   taxonomy: Taxonomy;
   canLock: boolean;
+  canReset: boolean;
   allKeys: {
     id: string;
     label: string;
@@ -62,6 +67,8 @@ export default function PostEditor({
   const [gateNote, setGateNote] = useState(post.gateNote);
   const [previewHtml, setPreviewHtml] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const resetFormRef = useRef<HTMLFormElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const handleContentChange = useCallback((value: string) => {
     setContent(value);
@@ -124,6 +131,7 @@ export default function PostEditor({
     setKeyIds((prev) => (prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]));
 
   return (
+    <>
     <form action={savePostAsDraft}>
       {post.id && <input type="hidden" name="id" value={post.id} />}
       <input type="hidden" name="content" value={content} />
@@ -417,5 +425,53 @@ export default function PostEditor({
         </div>
       )}
     </form>
+
+      {canReset && post.id && (
+        <form action={resetViews} ref={resetFormRef} style={{ marginTop: 16 }}>
+          <input type="hidden" name="id" value={post.id} />
+          <div className="panel">
+            <div className="h">
+              <h2>阅读统计</h2>
+            </div>
+            <div
+              className="b"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontSize: 14, color: "var(--soft)" }}>
+                当前阅读 <b style={{ color: "var(--aink)" }}>{formatViews(post.viewCount ?? 0)}</b> 次
+              </span>
+              <span className="sp" style={{ marginLeft: "auto" }} />
+              <button
+                type="button"
+                className="btn sm"
+                onClick={() => setResetOpen(true)}
+              >
+                重置阅读次数
+              </button>
+            </div>
+          </div>
+          <ConfirmDialog
+            open={resetOpen}
+            title="重置阅读次数"
+            description={
+              <>
+                当前阅读 <b>{formatViews(post.viewCount ?? 0)}</b> 次，重置后该数据归零且无法恢复。
+              </>
+            }
+            confirmText="重置"
+            onCancel={() => setResetOpen(false)}
+            onConfirm={() => {
+              setResetOpen(false);
+              resetFormRef.current?.requestSubmit();
+            }}
+          />
+        </form>
+      )}
+    </>
   );
 }

@@ -41,10 +41,12 @@ export default async function EditPostPage({
         locked: post.locked,
         gateNote: post.gateNote ?? "",
         keyIds: post.accessKeys.map((k) => k.id),
+        viewCount: post.viewCount,
       }}
       categories={categories}
       taxonomy={taxonomy}
       canLock={user.role === "ADMIN"}
+      canReset={user.role === "ADMIN"}
       allKeys={keys.map((k) => ({
         id: k.id,
         label: k.label ?? "",
