@@ -73,7 +73,7 @@ export default async function AdminPostsPage() {
                     编辑
                   </Link>
                   {p.status === "PUBLISHED" && (
-                    <Link className="lk" href={`/posts/${p.slug}`} target="_blank">
+                    <Link className="lk" href={`/posts/${p.slug}?preview=1`} target="_blank">
                       预览
                     </Link>
                   )}
