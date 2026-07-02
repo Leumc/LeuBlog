@@ -22,6 +22,10 @@ prisma/dev.db
 .env
 .env*.local
 
+# 本地 Claude Code 状态（hook 脚本 + local settings，仅本机）
+.claude/scripts/
+.claude/settings.local.json
+
 # 系统/编辑器
 .DS_Store
 Thumbs.db
