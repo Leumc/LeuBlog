@@ -714,6 +714,23 @@ article h1 { font-size: 42px; line-height: 1.25; font-weight: 700; margin: 16px 
 .body blockquote { margin: 24px 0; padding: 6px 22px; border-left: 3px solid var(--accent); color: var(--ink-soft); font-style: italic; background: var(--paper-2); }
 .body blockquote p { margin: 8px 0; }
 .body img { width: 100%; height: auto; border: 1px solid var(--rule); }
+.body img.article-previewable-image { cursor: zoom-in; }
+.body img.article-previewable-image:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* 前台正文与后台媒体库共用的完整图片预览 */
+.image-lightbox {
+  position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+  padding: 42px; background: rgba(12, 14, 17, 0.9); cursor: zoom-out;
+}
+.image-lightbox img {
+  display: block; width: auto; height: auto; max-width: 100%; max-height: calc(100dvh - 84px);
+  object-fit: contain; border: none; box-shadow: 0 16px 60px rgba(0, 0, 0, 0.45); cursor: default;
+}
+.image-lightbox-close {
+  position: fixed; top: 14px; right: 18px; z-index: 1; width: 38px; height: 38px;
+  border: 1px solid rgba(255,255,255,.45); border-radius: 50%; background: rgba(0,0,0,.3);
+  color: #fff; font: 28px/1 var(--sans); cursor: pointer;
+}
 .body table { width: 100%; border-collapse: collapse; font-size: 16px; margin: 0 0 18px; }
 .body th, .body td { border: 1px solid var(--rule); padding: 8px 12px; text-align: left; }
 .body th { background: var(--paper-2); }
@@ -1258,13 +1275,42 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
 .admin .tax .addrow input { flex: 1; font-size: 12.5px; border: 1px solid var(--aline); border-radius: 6px; padding: 6px 8px; }
 
 /* 媒体 */
-.admin .media { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.admin .media-library-layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+.admin .media-categories { border: 1px solid var(--aline); border-radius: 7px; overflow: hidden; background: #fafbfc; }
+.admin .media-categories-title { padding: 10px 12px; border-bottom: 1px solid var(--aline); color: var(--soft); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.admin .media-category-link, .admin .media-category-row { min-height: 34px; border-bottom: 1px solid var(--line2); color: var(--soft); font-size: 12.5px; }
+.admin .media-category-link { display: flex; align-items: center; justify-content: space-between; padding: 7px 12px; }
+.admin .media-category-link span, .admin .media-category-row .cnt { color: var(--amuted); font-size: 10.5px; }
+.admin .media-category-link.on, .admin .media-category-row.on { background: var(--accent-soft); color: var(--aaccent); font-weight: 600; }
+.admin .media-category-row { display: flex; align-items: center; padding-right: 6px; }
+.admin .media-category-row > a { min-width: 0; flex: 1; display: flex; align-items: center; gap: 6px; color: inherit; }
+.admin .media-category-row > a > span:nth-child(2) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.admin .media-category-row .cnt { margin-left: auto; }
+.admin .media-category-row .rm { border: 0; background: none; color: #b9c0c9; cursor: pointer; }
+.admin .media-category-row:hover .rm { color: var(--aaccent); }
+.admin .media-category-create { display: flex; flex-direction: column; gap: 7px; padding: 11px; }
+.admin .media-category-create input, .admin .media-category-create select,
+.admin .media-meta-form input, .admin .media-meta-form select {
+  width: 100%; min-width: 0; border: 1px solid var(--aline); border-radius: 5px; background: #fff;
+  color: var(--aink); font: 11.5px var(--sans); padding: 5px 7px;
+}
+.admin .media-category-hint { margin: 0; padding: 0 11px 11px; color: var(--amuted); font-size: 10.5px; line-height: 1.55; }
+.admin .media-results { min-width: 0; }
+.admin .media-empty { padding: 36px 10px; text-align: center; color: var(--amuted); font-size: 13px; }
+.admin .media { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .admin .media .m { border: 1px solid var(--aline); border-radius: 7px; overflow: hidden; background: #fff; }
-.admin .media .m .ph { height: 88px; background: linear-gradient(135deg, #eef0f3, #dfe3e8); display: flex; align-items: center; justify-content: center; color: #aeb6c1; font-size: 22px; overflow: hidden; }
-.admin .media .m .ph img { width: 100%; height: 100%; object-fit: cover; }
+.admin .media .m .ph { height: 130px; background: linear-gradient(135deg, #eef0f3, #dfe3e8); display: flex; align-items: center; justify-content: center; color: #aeb6c1; font-size: 22px; overflow: hidden; }
+.admin .media-thumbnail { width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.admin .media .m .ph img { width: 100%; height: 100%; object-fit: cover; transition: transform .18s ease; }
+.admin .media-thumbnail:hover img { transform: scale(1.035); }
 .admin .media .m .mi { padding: 7px 9px; }
-.admin .media .m .nm { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin .media-meta-form { display: grid; gap: 6px; }
+.admin .media-meta-form label { display: grid; gap: 3px; }
+.admin .media-meta-form label > span { color: var(--amuted); font-size: 10px; }
+.admin .media-meta-form .btn { justify-self: end; }
+.admin .media-actual-name { margin-top: 7px; color: var(--amuted); font: 10px var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .admin .media .m .sz { font-size: 10.5px; color: var(--amuted); display: flex; justify-content: space-between; margin-top: 3px; }
+.admin .media-actions { display: flex; gap: 8px; }
 .admin .drop { border: 2px dashed #cfd5dc; border-radius: 8px; padding: 22px; text-align: center; color: var(--amuted); font-size: 13px; background: #fafbfc; }
 .admin .colorrow { display: flex; align-items: center; gap: 12px; }
 .admin .swatch { width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--aline); }
@@ -1282,7 +1328,14 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   .admin .row2 { grid-template-columns: 1fr; }
   .admin .editor { grid-template-columns: 1fr; }
   .admin .tax { grid-template-columns: 1fr; }
-  .admin .media { grid-template-columns: repeat(3, 1fr); }
+  .admin .media-library-layout { grid-template-columns: 1fr; }
+  .admin .media { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .image-lightbox { padding: 48px 12px 18px; }
+  .image-lightbox img { max-height: calc(100dvh - 66px); }
+  .admin .media { grid-template-columns: 1fr; }
 }
 
 /* 响应式：窄屏堆叠 + 侧栏转右侧抽屉 */

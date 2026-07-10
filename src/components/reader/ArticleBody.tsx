@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import ImageLightbox from "@/components/ImageLightbox";
 import {
   type ReadingMotion,
   READING_MOTION_EVENT,
@@ -80,6 +81,34 @@ function collectTextNodes(el: HTMLElement): Text[] {
  */
 export default function ArticleBody({ html }: { html: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [preview, setPreview] = useState<{ src: string; alt: string } | null>(null);
+
+  // 正文图片可点击/键盘打开大图；实际 HTML 内容与图片地址均不改写。
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const cleanups: (() => void)[] = [];
+    root.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+      img.classList.add("article-previewable-image");
+      img.tabIndex = 0;
+      img.setAttribute("role", "button");
+      img.setAttribute("aria-label", img.alt ? `放大图片：${img.alt}` : "放大图片");
+      const open = (event: Event) => {
+        event.preventDefault();
+        setPreview({ src: img.currentSrc || img.src, alt: img.alt });
+      };
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === "Enter" || event.key === " ") open(event);
+      };
+      img.addEventListener("click", open);
+      img.addEventListener("keydown", onKeyDown);
+      cleanups.push(() => {
+        img.removeEventListener("click", open);
+        img.removeEventListener("keydown", onKeyDown);
+      });
+    });
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [html]);
 
   // 代码块工具条（语言 + 复制按钮），1:1 匹配预览 .code .bar —— 与动效互不干扰
   useEffect(() => {
@@ -333,5 +362,12 @@ export default function ArticleBody({ html }: { html: string }) {
     };
   }, [html]);
 
-  return <div ref={ref} className="body" dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <>
+      <div ref={ref} className="body" dangerouslySetInnerHTML={{ __html: html }} />
+      {preview && (
+        <ImageLightbox src={preview.src} alt={preview.alt} onClose={() => setPreview(null)} />
+      )}
+    </>
+  );
 }

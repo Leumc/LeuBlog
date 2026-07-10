@@ -179,3 +179,33 @@ model AccessKey {
 
   @@index([active])
 }
+
+// 媒体库中的虚拟分类。分类仅存在于数据库，不对应 uploads 下的物理目录。
+model MediaCategory {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentId String?
+  parent   MediaCategory?  @relation("MediaCategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children MediaCategory[] @relation("MediaCategoryTree")
+  assets   MediaAsset[]
+
+  @@unique([parentId, name])
+  @@index([parentId])
+}
+
+// 图片的可变展示信息。filename 始终指向 uploads 下原有的实际文件。
+model MediaAsset {
+  id          String   @id @default(cuid())
+  filename    String   @unique
+  displayName String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String?
+  category   MediaCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([categoryId])
+}
