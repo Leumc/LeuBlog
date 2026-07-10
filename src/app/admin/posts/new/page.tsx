@@ -25,7 +25,9 @@ export default async function NewPostPage() {
         locked: false,
         gateNote: "",
         keyIds: [],
+        updatedAt: null,
       }}
+      ownerId={user.id}
       categories={categories}
       taxonomy={taxonomy}
       canLock={user.role === "ADMIN"}

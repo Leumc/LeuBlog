@@ -1224,6 +1224,8 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
 .admin .ed-meta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--aline); background: #fafbfc; }
 .admin .ed-meta .m { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--soft); }
 .admin .ed-meta select, .admin .ed-meta input { font-family: inherit; font-size: 12.5px; border: 1px solid var(--aline); border-radius: 6px; padding: 5px 8px; }
+.admin .post-browser-draft-status { color: var(--amuted); font-size: 10.5px; white-space: nowrap; }
+.admin .post-editor-save-error { padding: 8px 16px; border-bottom: 1px solid #edc9c6; background: var(--accent-soft); color: var(--aaccent); font-size: 12px; }
 .admin .ed-tools { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--aline); flex-wrap: wrap; }
 .admin .ed-tools button { font-family: inherit; font-size: 13px; min-width: 32px; height: 30px; padding: 0 8px; border: 1px solid var(--aline); background: #fff; border-radius: 5px; cursor: pointer; color: var(--soft); }
 .admin .ed-tools button:hover { border-color: var(--aaccent); color: var(--aaccent); }

@@ -40,7 +40,7 @@ async function moveAsset(assetId: string, categoryId: string | null): Promise<vo
   const newUrl = uploadUrl(newRelativePath);
   const posts = await prisma.post.findMany({
     where: { OR: [{ content: { contains: oldUrl } }, { coverImage: { contains: oldUrl } }] },
-    select: { id: true, slug: true, content: true, coverImage: true, updatedAt: true },
+    select: { id: true, slug: true, content: true, coverImage: true },
   });
 
   await rename(oldPath, newPath);
@@ -57,7 +57,6 @@ async function moveAsset(assetId: string, categoryId: string | null): Promise<vo
         data: {
           content: post.content.replaceAll(oldUrl, newUrl),
           coverImage: post.coverImage?.replaceAll(oldUrl, newUrl) ?? null,
-          updatedAt: post.updatedAt,
         },
       })),
     ]);

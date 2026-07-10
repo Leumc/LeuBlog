@@ -42,7 +42,9 @@ export default async function EditPostPage({
         gateNote: post.gateNote ?? "",
         keyIds: post.accessKeys.map((k) => k.id),
         viewCount: post.viewCount,
+        updatedAt: post.updatedAt.toISOString(),
       }}
+      ownerId={user.id}
       categories={categories}
       taxonomy={taxonomy}
       canLock={user.role === "ADMIN"}

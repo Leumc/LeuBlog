@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { EditorView } from "@codemirror/view";
 import { savePostAsDraft, publishPost, resetViews } from "@/app/admin/posts/post-actions";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
@@ -10,6 +11,20 @@ import {
   getMarkdownEditorBasicSetup,
   getMarkdownEditorExtensions,
 } from "./markdown-editor-config";
+import {
+  POST_DRAFT_EVENT,
+  POST_DRAFT_DISCARD_EVENT,
+  POST_DRAFT_FLUSH_EVENT,
+  activePostDraftStorageKey,
+  postDraftFieldsEqual,
+  postDraftIdentity,
+  postDraftStorageKey,
+  postEditorRoute,
+  readActivePostDraft,
+  readPostDraft,
+  type PostBrowserDraft,
+  type PostDraftFields,
+} from "@/lib/post-browser-draft";
 
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), { ssr: false });
 
@@ -26,6 +41,7 @@ export type EditorPost = {
   gateNote: string;
   keyIds: string[];
   viewCount?: number;
+  updatedAt: string | null;
 };
 
 export type Taxonomy = {
@@ -36,6 +52,7 @@ export type Taxonomy = {
 
 export default function PostEditor({
   post,
+  ownerId,
   categories,
   taxonomy,
   canLock,
@@ -43,6 +60,7 @@ export default function PostEditor({
   allKeys,
 }: {
   post: EditorPost;
+  ownerId: string;
   categories: { id: string; name: string }[];
   taxonomy: Taxonomy;
   canLock: boolean;
@@ -56,6 +74,20 @@ export default function PostEditor({
     validUntil: string | null;
   }[];
 }) {
+  const router = useRouter();
+  const identity = postDraftIdentity(post.id);
+  const draftKey = postDraftStorageKey(ownerId, identity);
+  const initialFieldsRef = useRef<PostDraftFields>({
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    content: post.content,
+    categoryId: post.categoryId ?? "",
+    tagIds: post.tagIds,
+    locked: post.locked,
+    gateNote: post.gateNote,
+    keyIds: post.keyIds,
+  });
   const [title, setTitle] = useState(post.title);
   const [slug, setSlug] = useState(post.slug);
   const [excerpt, setExcerpt] = useState(post.excerpt);
@@ -68,11 +100,151 @@ export default function PostEditor({
   const [previewHtml, setPreviewHtml] = useState("");
   const [uploading, setUploading] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
+  const [browserDraftStatus, setBrowserDraftStatus] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [restored, setRestored] = useState(false);
+  const [conflictingDraft, setConflictingDraft] = useState<PostBrowserDraft | null>(null);
+  const [saving, startSaving] = useTransition();
   const resetFormRef = useRef<HTMLFormElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const draftEnabledRef = useRef(true);
+  const restoredRef = useRef(false);
   const handleContentChange = useCallback((value: string) => {
     setContent(value);
   }, []);
+
+  const currentFields = useMemo<PostDraftFields>(() => ({
+    title,
+    slug,
+    excerpt,
+    content,
+    categoryId,
+    tagIds,
+    locked,
+    gateNote,
+    keyIds,
+  }), [title, slug, excerpt, content, categoryId, tagIds, locked, gateNote, keyIds]);
+  const currentFieldsRef = useRef(currentFields);
+  currentFieldsRef.current = currentFields;
+  const dirty = !postDraftFieldsEqual(currentFields, initialFieldsRef.current);
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
+
+  const clearBrowserDraft = useCallback(() => {
+    try {
+      window.localStorage.removeItem(draftKey);
+      const active = readActivePostDraft(window.localStorage, ownerId);
+      if (active?.draftKey === draftKey) {
+        window.localStorage.removeItem(activePostDraftStorageKey(ownerId));
+      }
+      window.dispatchEvent(new Event(POST_DRAFT_EVENT));
+    } catch {
+      /* storage unavailable */
+    }
+    setBrowserDraftStatus("");
+  }, [draftKey, ownerId]);
+
+  const persistBrowserDraft = useCallback((fields: PostDraftFields) => {
+    if (!draftEnabledRef.current) return;
+    const savedAt = Date.now();
+    try {
+      window.localStorage.setItem(draftKey, JSON.stringify({
+        version: 1,
+        ownerId,
+        identity,
+        baseUpdatedAt: post.updatedAt,
+        savedAt,
+        fields,
+      } satisfies PostBrowserDraft));
+      window.localStorage.setItem(activePostDraftStorageKey(ownerId), JSON.stringify({
+        version: 1,
+        ownerId,
+        identity,
+        draftKey,
+        route: postEditorRoute(identity),
+        title: fields.title.trim() || "未命名文章",
+        savedAt,
+      }));
+      setBrowserDraftStatus(`已保存到浏览器 ${new Date(savedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`);
+      window.dispatchEvent(new Event(POST_DRAFT_EVENT));
+    } catch {
+      setBrowserDraftStatus("浏览器临时保存失败");
+    }
+  }, [draftKey, identity, ownerId, post.updatedAt]);
+
+  const validCategoryIds = useMemo(() => new Set(categories.map((category) => category.id)), [categories]);
+  const validTagIds = useMemo(
+    () => new Set(taxonomy.flatMap((category) => category.tagGroups.flatMap((group) => group.tags.map((tag) => tag.id)))),
+    [taxonomy],
+  );
+  const validKeyIds = useMemo(() => new Set(allKeys.map((key) => key.id)), [allKeys]);
+
+  const applyBrowserDraft = useCallback((draft: PostBrowserDraft) => {
+    const fields = draft.fields;
+    setTitle(fields.title);
+    setSlug(fields.slug);
+    setExcerpt(fields.excerpt);
+    setContent(fields.content);
+    setCategoryId(validCategoryIds.has(fields.categoryId) ? fields.categoryId : "");
+    setTagIds(fields.tagIds.filter((id) => validTagIds.has(id)));
+    setLocked(fields.locked);
+    setGateNote(fields.gateNote);
+    setKeyIds(fields.keyIds.filter((id) => validKeyIds.has(id)));
+    setBrowserDraftStatus(`已恢复浏览器草稿 ${new Date(draft.savedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`);
+  }, [validCategoryIds, validKeyIds, validTagIds]);
+
+  useEffect(() => {
+    const draft = readPostDraft(window.localStorage, ownerId, identity);
+    if (!draft) {
+      restoredRef.current = true;
+      setRestored(true);
+      return;
+    }
+    if (post.updatedAt && draft.baseUpdatedAt !== post.updatedAt) {
+      setConflictingDraft(draft);
+      return;
+    }
+    applyBrowserDraft(draft);
+    restoredRef.current = true;
+    setRestored(true);
+  }, [applyBrowserDraft, identity, ownerId, post.updatedAt]);
+
+  useEffect(() => {
+    if (!restored || conflictingDraft) return;
+    if (!dirty) {
+      clearBrowserDraft();
+      return;
+    }
+    const timer = window.setTimeout(() => persistBrowserDraft(currentFields), 300);
+    return () => window.clearTimeout(timer);
+  }, [clearBrowserDraft, conflictingDraft, currentFields, dirty, persistBrowserDraft, restored]);
+
+  const persistLatestRef = useRef<() => void>(() => undefined);
+  persistLatestRef.current = () => {
+    if (!restoredRef.current) return;
+    if (dirtyRef.current) persistBrowserDraft(currentFieldsRef.current);
+    else clearBrowserDraft();
+  };
+  useEffect(() => {
+    const flush = () => persistLatestRef.current();
+    const discard = (event: Event) => {
+      const discardedKey = (event as CustomEvent<string | null>).detail;
+      if (discardedKey && discardedKey !== draftKey) return;
+      draftEnabledRef.current = false;
+      restoredRef.current = false;
+    };
+    window.addEventListener("pagehide", flush);
+    window.addEventListener(POST_DRAFT_FLUSH_EVENT, flush);
+    window.addEventListener(POST_DRAFT_DISCARD_EVENT, discard);
+    document.addEventListener("click", flush, true);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      window.removeEventListener(POST_DRAFT_FLUSH_EVENT, flush);
+      window.removeEventListener(POST_DRAFT_DISCARD_EVENT, discard);
+      document.removeEventListener("click", flush, true);
+      flush();
+    };
+  }, [draftKey]);
 
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -130,9 +302,35 @@ export default function PostEditor({
   const toggleKey = (id: string) =>
     setKeyIds((prev) => (prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]));
 
+  const submitPost = (formData: FormData) => {
+    const intent = String(formData.get("intent") || "draft");
+    setSaveError("");
+    startSaving(async () => {
+      try {
+        if (intent === "publish") await publishPost(formData);
+        else await savePostAsDraft(formData);
+        draftEnabledRef.current = false;
+        restoredRef.current = false;
+        clearBrowserDraft();
+        router.push("/admin/posts");
+        router.refresh();
+      } catch (error) {
+        setSaveError(error instanceof Error ? error.message : "保存失败，请稍后重试");
+      }
+    });
+  };
+
+  const resolveDraftConflict = (restoreLocal: boolean) => {
+    if (restoreLocal && conflictingDraft) applyBrowserDraft(conflictingDraft);
+    else clearBrowserDraft();
+    setConflictingDraft(null);
+    restoredRef.current = true;
+    setRestored(true);
+  };
+
   return (
     <>
-    <form action={savePostAsDraft}>
+    <form action={submitPost}>
       {post.id && <input type="hidden" name="id" value={post.id} />}
       <input type="hidden" name="content" value={content} />
       <input type="hidden" name="tagIds" value={JSON.stringify(tagIds)} />
@@ -181,19 +379,25 @@ export default function PostEditor({
           <span className="sp" style={{ marginLeft: "auto" }} />
           <button
             type="submit"
-            formAction={savePostAsDraft}
+            name="intent"
+            value="draft"
             className="btn sm"
+            disabled={saving}
           >
-            保存草稿
+            {saving ? "保存中…" : "保存草稿"}
           </button>
           <button
             type="submit"
-            formAction={publishPost}
+            name="intent"
+            value="publish"
             className="btn primary sm"
+            disabled={saving}
           >
             {post.status === "PUBLISHED" ? "更新发布" : "发布"}
           </button>
+          {browserDraftStatus && <span className="post-browser-draft-status">{browserDraftStatus}</span>}
         </div>
+        {saveError && <div className="post-editor-save-error" role="alert">{saveError}</div>}
 
         <div className="ed-tools">
           <button type="button" title="加粗" onClick={() => insert("粗体", "**")}>
@@ -472,6 +676,22 @@ export default function PostEditor({
           />
         </form>
       )}
+      <ConfirmDialog
+        open={Boolean(conflictingDraft)}
+        title="发现浏览器草稿与服务器版本冲突"
+        description={
+          conflictingDraft ? (
+            <>
+              浏览器草稿保存于 {new Date(conflictingDraft.savedAt).toLocaleString("zh-CN")}，但服务器文章之后已发生变化。请选择要继续编辑的版本。
+            </>
+          ) : null
+        }
+        cancelText="使用服务器版本"
+        confirmText="恢复浏览器草稿"
+        dismissible={false}
+        onCancel={() => resolveDraftConflict(false)}
+        onConfirm={() => resolveDraftConflict(true)}
+      />
     </>
   );
 }

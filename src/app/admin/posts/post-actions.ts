@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireAdmin, canEditPost } from "@/lib/permissions";
 import { slugify } from "@/lib/utils";
@@ -18,7 +17,7 @@ async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
   }
 }
 
-async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): Promise<void> {
+async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): Promise<{ id: string }> {
   const user = await requireUser();
 
   const id = String(formData.get("id") || "");
@@ -92,14 +91,14 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
 
   revalidatePath("/admin/posts");
   revalidatePath("/");
-  redirect("/admin/posts");
+  return { id: savedPost.id };
 }
 
-export async function savePostAsDraft(formData: FormData): Promise<void> {
+export async function savePostAsDraft(formData: FormData): Promise<{ id: string }> {
   return persistPost(formData, "DRAFT");
 }
 
-export async function publishPost(formData: FormData): Promise<void> {
+export async function publishPost(formData: FormData): Promise<{ id: string }> {
   return persistPost(formData, "PUBLISHED");
 }
 
