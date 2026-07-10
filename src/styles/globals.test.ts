@@ -56,3 +56,16 @@ describe("article body links", () => {
     expect(ruleIndex(".admin .ed-pv .body a")).toBeGreaterThan(ruleIndex(".admin a"));
   });
 });
+
+describe("media library grid", () => {
+  it("fills available width instead of capping the library at three columns", () => {
+    expect(ruleFor(".admin .media")).toMatch(/repeat\(auto-fill,\s*minmax\(/);
+    expect(ruleFor(".admin .media")).not.toMatch(/repeat\(3,/);
+  });
+
+  it("uses the same column sizing for folders and images", () => {
+    const folders = ruleFor(".admin .media-folder-grid").match(/grid-template-columns:\s*([^;]+)/)?.[1];
+    const images = ruleFor(".admin .media").match(/grid-template-columns:\s*([^;]+)/)?.[1];
+    expect(folders).toBe(images);
+  });
+});

@@ -15,7 +15,7 @@ export default async function AdminLayout({
   return (
     <AdminShell
       sections={navForRole(user.role)}
-      user={{ displayName: user.displayName, role: user.role }}
+      user={{ id: user.id, displayName: user.displayName, role: user.role }}
     >
       {children}
     </AdminShell>

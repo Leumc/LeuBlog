@@ -66,6 +66,7 @@ model Post {
   category   Category? @relation(fields: [categoryId], references: [id])
   tags       Tag[]     @relation("PostTags")
   accessKeys AccessKey[] @relation("KeyPosts")
+  mediaReferences MediaReference[]
 
   @@index([status, publishedAt])
   @@index([authorId])
@@ -178,4 +179,64 @@ model AccessKey {
   posts Post[] @relation("KeyPosts")
 
   @@index([active])
+}
+
+// 媒体库文件夹；显示名在此表，随机物理目录段在 MediaStorageFolder。
+model MediaCategory {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentId String?
+  parent   MediaCategory?  @relation("MediaCategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children MediaCategory[] @relation("MediaCategoryTree")
+  assets   MediaAsset[]
+  storage  MediaStorageFolder?
+
+  @@unique([parentId, name])
+  @@index([parentId])
+}
+
+// 图片的可变展示信息；filename 是随机实际文件名，相对路径由 MediaStorageAsset 保存。
+model MediaAsset {
+  id          String   @id @default(cuid())
+  filename    String   @unique
+  displayName String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String?
+  category   MediaCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  storage    MediaStorageAsset?
+  references MediaReference[]
+
+  @@index([categoryId])
+}
+
+// 文件夹显示名与磁盘随机目录段分离，兼容已经存在的 MediaCategory 表。
+model MediaStorageFolder {
+  categoryId String @id
+  storageName String @unique
+  category MediaCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+// 图片当前实际相对路径；旧图片没有记录时回退到 MediaAsset.filename（上传根目录）。
+model MediaStorageAsset {
+  assetId      String @id
+  relativePath String @unique
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+// 可查询的文章图片引用索引；正文仍是最终内容来源。
+model MediaReference {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  assetId   String
+  postId    String
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  post  Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, postId])
+  @@index([postId])
 }

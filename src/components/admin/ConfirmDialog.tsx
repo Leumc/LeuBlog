@@ -10,6 +10,7 @@ export function ConfirmDialog({
   description,
   confirmText = "确认",
   cancelText = "取消",
+  dismissible = true,
   onConfirm,
   onCancel,
 }: {
@@ -18,21 +19,22 @@ export function ConfirmDialog({
   description: ReactNode;
   confirmText?: string;
   cancelText?: string;
+  dismissible?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
+      if (dismissible && e.key === "Escape") onCancel();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onCancel]);
+  }, [dismissible, open, onCancel]);
 
   if (!open) return null;
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    <div className="modal-backdrop" onClick={dismissible ? onCancel : undefined}>
       <div
         className="modal"
         onClick={(e) => e.stopPropagation()}

@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireAdmin, canEditPost } from "@/lib/permissions";
 import { slugify } from "@/lib/utils";
 import { makeExcerpt } from "@/lib/markdown";
+import { syncPostMediaReferences } from "@/lib/media-references";
 
 async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
   let slug = base;
@@ -17,7 +17,7 @@ async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
   }
 }
 
-async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): Promise<void> {
+async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): Promise<{ id: string }> {
   const user = await requireUser();
 
   const id = String(formData.get("id") || "");
@@ -44,6 +44,7 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
   const baseSlug = slugify(slugInput || title);
   const excerpt = excerptInput || makeExcerpt(content);
 
+  let savedPost: { id: string; content: string; coverImage: string | null };
   if (id) {
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) throw new Error("文章不存在");
@@ -51,7 +52,7 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
 
     const slug = await uniqueSlug(baseSlug, id);
     const wasPublished = post.status === "PUBLISHED";
-    await prisma.post.update({
+    savedPost = await prisma.post.update({
       where: { id },
       data: {
         title,
@@ -69,7 +70,7 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
     });
   } else {
     const slug = await uniqueSlug(baseSlug);
-    await prisma.post.create({
+    savedPost = await prisma.post.create({
       data: {
         title,
         slug,
@@ -86,16 +87,18 @@ async function persistPost(formData: FormData, status: "DRAFT" | "PUBLISHED"): P
     });
   }
 
+  await syncPostMediaReferences(savedPost.id, savedPost.content, savedPost.coverImage);
+
   revalidatePath("/admin/posts");
   revalidatePath("/");
-  redirect("/admin/posts");
+  return { id: savedPost.id };
 }
 
-export async function savePostAsDraft(formData: FormData): Promise<void> {
+export async function savePostAsDraft(formData: FormData): Promise<{ id: string }> {
   return persistPost(formData, "DRAFT");
 }
 
-export async function publishPost(formData: FormData): Promise<void> {
+export async function publishPost(formData: FormData): Promise<{ id: string }> {
   return persistPost(formData, "PUBLISHED");
 }
 

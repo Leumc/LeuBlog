@@ -2,8 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import type { NavSection } from "@/lib/permissions";
 import { logoutAction } from "@/app/admin/auth-actions";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import {
+  POST_DRAFT_EVENT,
+  POST_DRAFT_DISCARD_EVENT,
+  POST_DRAFT_FLUSH_EVENT,
+  activePostDraftStorageKey,
+  editorIdentityFromPathname,
+  readActivePostDraft,
+  shouldConfirmEditorNavigation,
+  type ActivePostDraft,
+} from "@/lib/post-browser-draft";
 
 function bestMatch(pathname: string, hrefs: string[]): string {
   let best = "";
@@ -20,7 +32,7 @@ export default function AdminShell({
   children,
 }: {
   sections: NavSection[];
-  user: { displayName: string; role: "ADMIN" | "EDITOR" };
+  user: { id: string; displayName: string; role: "ADMIN" | "EDITOR" };
   children: React.ReactNode;
 }) {
   const pathname = usePathname() || "/admin";
@@ -28,6 +40,68 @@ export default function AdminShell({
   const activeHref = bestMatch(pathname, allItems.map((i) => i.href));
   const current = allItems.find((i) => i.href === activeHref);
   const title = current?.label ?? "仪表盘";
+  const [activeDraft, setActiveDraft] = useState<ActivePostDraft | null>(null);
+  const [pendingEditorHref, setPendingEditorHref] = useState<string | null>(null);
+
+  const refreshActiveDraft = useCallback(() => {
+    try {
+      setActiveDraft(readActivePostDraft(window.localStorage, user.id));
+    } catch {
+      setActiveDraft(null);
+    }
+  }, [user.id]);
+
+  useEffect(() => {
+    refreshActiveDraft();
+    window.addEventListener(POST_DRAFT_EVENT, refreshActiveDraft);
+    window.addEventListener("storage", refreshActiveDraft);
+    return () => {
+      window.removeEventListener(POST_DRAFT_EVENT, refreshActiveDraft);
+      window.removeEventListener("storage", refreshActiveDraft);
+    };
+  }, [refreshActiveDraft]);
+
+  useEffect(() => {
+    const guardEditorLink = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      const targetIdentity = editorIdentityFromPathname(url.pathname);
+      if (!targetIdentity) return;
+
+      window.dispatchEvent(new Event(POST_DRAFT_FLUSH_EVENT));
+      const latest = readActivePostDraft(window.localStorage, user.id);
+      setActiveDraft(latest);
+      if (!shouldConfirmEditorNavigation({
+        activeIdentity: latest?.identity ?? null,
+        targetIdentity,
+        currentEditorIdentity: editorIdentityFromPathname(pathname),
+      })) return;
+
+      event.preventDefault();
+      setPendingEditorHref(`${url.pathname}${url.search}${url.hash}`);
+    };
+    document.addEventListener("click", guardEditorLink, true);
+    return () => document.removeEventListener("click", guardEditorLink, true);
+  }, [pathname, user.id]);
+
+  const discardAndNavigate = () => {
+    if (!pendingEditorHref) return;
+    try {
+      const latest = readActivePostDraft(window.localStorage, user.id);
+      if (latest) window.localStorage.removeItem(latest.draftKey);
+      window.localStorage.removeItem(activePostDraftStorageKey(user.id));
+      window.dispatchEvent(new CustomEvent(POST_DRAFT_DISCARD_EVENT, { detail: latest?.draftKey ?? null }));
+      window.dispatchEvent(new Event(POST_DRAFT_EVENT));
+    } catch {
+      /* storage unavailable: navigation still proceeds */
+    }
+    window.location.assign(pendingEditorHref);
+  };
 
   return (
     <div className="admin">
@@ -87,6 +161,18 @@ export default function AdminShell({
           <div className="content">{children}</div>
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(pendingEditorHref)}
+        title="开始编辑另一篇文章？"
+        description={
+          <>
+            当前未保存的工作{activeDraft?.title ? <>“{activeDraft.title}”</> : ""}将从浏览器中删除，且无法恢复。
+          </>
+        }
+        confirmText="丢弃并继续"
+        onCancel={() => setPendingEditorHref(null)}
+        onConfirm={discardAndNavigate}
+      />
     </div>
   );
 }
