@@ -3,21 +3,32 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function MediaUploader() {
+export default function MediaUploader({ categoryId }: { categoryId?: string }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
+  const [error, setError] = useState("");
 
   const upload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setBusy(true);
+    setError("");
     try {
+      const failures: string[] = [];
       for (const f of Array.from(files)) {
         const fd = new FormData();
         fd.append("file", f);
-        await fetch("/api/upload", { method: "POST", body: fd });
+        if (categoryId) fd.append("categoryId", categoryId);
+        try {
+          const response = await fetch("/api/upload", { method: "POST", body: fd });
+          const data = await response.json();
+          if (!response.ok || !data.ok) failures.push(`${f.name}：${data.error || "上传失败"}`);
+        } catch {
+          failures.push(`${f.name}：网络错误`);
+        }
       }
+      if (failures.length) setError(failures.join("；"));
       router.refresh();
     } finally {
       setBusy(false);
@@ -25,6 +36,7 @@ export default function MediaUploader() {
   };
 
   return (
+    <div>
     <div
       className="drop"
       style={drag ? { borderColor: "var(--aaccent)", background: "#fbeceb" } : undefined}
@@ -51,6 +63,8 @@ export default function MediaUploader() {
         style={{ display: "none" }}
         onChange={(e) => upload(e.target.files)}
       />
+    </div>
+    {error && <p className="media-upload-error" role="alert">{error}</p>}
     </div>
   );
 }

@@ -11,7 +11,7 @@ tsconfig.tsbuildinfo
 
 # 运行期数据与上传（部署时挂载卷）
 data/
-uploads/
+/uploads/
 
 # 本地 SQLite（迁移目录 prisma/migrations 仍需提交）
 *.db

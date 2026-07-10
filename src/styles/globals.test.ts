@@ -56,3 +56,10 @@ describe("article body links", () => {
     expect(ruleIndex(".admin .ed-pv .body a")).toBeGreaterThan(ruleIndex(".admin a"));
   });
 });
+
+describe("media library grid", () => {
+  it("fills available width instead of capping the library at three columns", () => {
+    expect(ruleFor(".admin .media")).toMatch(/repeat\(auto-fill,\s*minmax\(/);
+    expect(ruleFor(".admin .media")).not.toMatch(/repeat\(3,/);
+  });
+});

@@ -30,6 +30,28 @@ const MEDIA_SCHEMA_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS "MediaCategory_parentId_idx" ON "MediaCategory"("parentId")`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "MediaAsset_filename_key" ON "MediaAsset"("filename")`,
   `CREATE INDEX IF NOT EXISTS "MediaAsset_categoryId_idx" ON "MediaAsset"("categoryId")`,
+  `CREATE TABLE IF NOT EXISTS "MediaStorageFolder" (
+    "categoryId" TEXT NOT NULL PRIMARY KEY,
+    "storageName" TEXT NOT NULL,
+    CONSTRAINT "MediaStorageFolder_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "MediaCategory" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS "MediaStorageAsset" (
+    "assetId" TEXT NOT NULL PRIMARY KEY,
+    "relativePath" TEXT NOT NULL,
+    CONSTRAINT "MediaStorageAsset_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "MediaAsset" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS "MediaReference" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "assetId" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    CONSTRAINT "MediaReference_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "MediaAsset" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "MediaReference_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "MediaStorageFolder_storageName_key" ON "MediaStorageFolder"("storageName")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "MediaStorageAsset_relativePath_key" ON "MediaStorageAsset"("relativePath")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "MediaReference_assetId_postId_key" ON "MediaReference"("assetId", "postId")`,
+  `CREATE INDEX IF NOT EXISTS "MediaReference_postId_idx" ON "MediaReference"("postId")`,
 ] as const;
 
 let initialization: Promise<void> | null = null;
@@ -37,12 +59,6 @@ let initialization: Promise<void> | null = null;
 export function ensureMediaSchema(): Promise<void> {
   if (!initialization) {
     initialization = (async () => {
-      const existing = await prisma.$queryRawUnsafe<{ name: string }[]>(
-        `SELECT name FROM sqlite_master
-         WHERE type = 'table' AND name IN ('MediaCategory', 'MediaAsset')`,
-      );
-      if (existing.length === 2) return;
-
       await prisma.$transaction(
         MEDIA_SCHEMA_STATEMENTS.map((sql) => prisma.$executeRawUnsafe(sql)),
       );
