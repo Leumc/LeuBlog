@@ -1286,7 +1286,7 @@ footer.site .foot-row { display: flex; align-items: center; justify-content: cen
   min-width: 0; border: 1px solid var(--aline); border-radius: 5px; background: #fff;
   color: var(--aink); font: 12px var(--sans); padding: 6px 8px;
 }
-.admin .media-folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.admin .media-folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .admin .media-folder { position: relative; display: flex; align-items: center; border: 1px solid var(--aline); border-radius: 7px; background: #fafbfc; }
 .admin .media-folder > a { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; padding: 11px 34px 11px 12px; }
 .admin .media-folder-icon { color: #d0a24d; font-size: 25px; line-height: 1; }
