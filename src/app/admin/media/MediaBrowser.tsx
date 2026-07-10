@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import PreviewImage from "./PreviewImage";
 import { createMediaCategory, deleteMedia, deleteMediaCategory, moveMedia, organizeLegacyMedia, renameMedia } from "./actions";
@@ -54,6 +54,22 @@ export default function MediaBrowser({
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!openMenu) return;
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(".media-card-menu-wrap")) return;
+      setOpenMenu(null);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [openMenu]);
+
+  const showDialog = (nextDialog: Exclude<Dialog, null>) => {
+    setOpenMenu(null);
+    setDialog(nextDialog);
+  };
 
   const run = (action: (data: FormData) => Promise<void>, data: FormData) => {
     if (pending) return;
@@ -138,21 +154,23 @@ export default function MediaBrowser({
                 <div className="media-card-title" title={file.displayName}>{file.displayName}</div>
                 <div className="sz"><span>{fmtSize(file.size)}</span><span>{file.references.length} 篇引用</span></div>
               </div>
-              <button
-                className="media-card-menu-button"
-                type="button"
-                aria-label={`管理 ${file.displayName}`}
-                onClick={() => setOpenMenu(openMenu === file.id ? null : file.id)}
-              >•••</button>
-              {openMenu === file.id && (
-                <div className="media-card-menu">
-                  <button onClick={() => setDialog({ type: "rename", file })}>修改显示名</button>
-                  <button onClick={() => setDialog({ type: "move", file })}>移动到文件夹</button>
-                  <button onClick={() => setDialog({ type: "references", file })}>查看引用文章</button>
-                  <button onClick={() => navigator.clipboard?.writeText(file.url)}>复制链接</button>
-                  <button className="danger" onClick={() => setDialog({ type: "delete-file", file })}>删除图片</button>
-                </div>
-              )}
+              <div className="media-card-menu-wrap">
+                <button
+                  className="media-card-menu-button"
+                  type="button"
+                  aria-label={`管理 ${file.displayName}`}
+                  onClick={() => setOpenMenu(openMenu === file.id ? null : file.id)}
+                >•••</button>
+                {openMenu === file.id && (
+                  <div className="media-card-menu">
+                    <button onClick={() => showDialog({ type: "rename", file })}>修改显示名</button>
+                    <button onClick={() => showDialog({ type: "move", file })}>移动到文件夹</button>
+                    <button onClick={() => showDialog({ type: "references", file })}>查看引用文章</button>
+                    <button onClick={() => { setOpenMenu(null); navigator.clipboard?.writeText(file.url); }}>复制链接</button>
+                    <button className="danger" onClick={() => showDialog({ type: "delete-file", file })}>删除图片</button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
