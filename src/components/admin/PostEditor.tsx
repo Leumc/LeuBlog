@@ -3,14 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { EditorView } from "@codemirror/view";
 import { savePostAsDraft, publishPost, resetViews } from "@/app/admin/posts/post-actions";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { formatViews } from "@/lib/utils";
-import {
-  getMarkdownEditorBasicSetup,
-  getMarkdownEditorExtensions,
-} from "./markdown-editor-config";
 import {
   POST_DRAFT_EVENT,
   POST_DRAFT_DISCARD_EVENT,
@@ -26,7 +21,19 @@ import {
   type PostDraftFields,
 } from "@/lib/post-browser-draft";
 
-const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), { ssr: false });
+const MarkdownEditor = dynamic(() => import("./MarkdownEditor"), { ssr: false });
+
+type MarkdownEditorView = {
+  state: {
+    selection: { main: { from: number; to: number } };
+    sliceDoc: (from: number, to: number) => string;
+  };
+  dispatch: (spec: {
+    changes: { from: number; to: number; insert: string };
+    selection: { anchor: number };
+  }) => void;
+  focus: () => void;
+};
 
 export type EditorPost = {
   id?: string;
@@ -106,7 +113,7 @@ export default function PostEditor({
   const [conflictingDraft, setConflictingDraft] = useState<PostBrowserDraft | null>(null);
   const [saving, startSaving] = useTransition();
   const resetFormRef = useRef<HTMLFormElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
+  const viewRef = useRef<MarkdownEditorView | null>(null);
   const draftEnabledRef = useRef(true);
   const restoredRef = useRef(false);
   const handleContentChange = useCallback((value: string) => {
@@ -508,15 +515,13 @@ export default function PostEditor({
           <div>实时预览</div>
         </div>
         <div className="editor">
-          <CodeMirror
+          <MarkdownEditor
             value={content}
             height="520px"
-            extensions={getMarkdownEditorExtensions()}
             onChange={handleContentChange}
             onCreateEditor={(view) => {
               viewRef.current = view;
             }}
-            basicSetup={getMarkdownEditorBasicSetup()}
           />
           <div className="ed-pv">
             <div className="body" dangerouslySetInnerHTML={{ __html: previewHtml }} />
