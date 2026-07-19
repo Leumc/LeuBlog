@@ -309,8 +309,7 @@ export default function PostEditor({
   const toggleKey = (id: string) =>
     setKeyIds((prev) => (prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]));
 
-  const submitPost = (formData: FormData) => {
-    const intent = String(formData.get("intent") || "draft");
+  const submitPost = (formData: FormData, intent: "draft" | "publish") => {
     setSaveError("");
     startSaving(async () => {
       try {
@@ -327,6 +326,9 @@ export default function PostEditor({
     });
   };
 
+  const saveDraft = (formData: FormData) => submitPost(formData, "draft");
+  const publish = (formData: FormData) => submitPost(formData, "publish");
+
   const resolveDraftConflict = (restoreLocal: boolean) => {
     if (restoreLocal && conflictingDraft) applyBrowserDraft(conflictingDraft);
     else clearBrowserDraft();
@@ -337,7 +339,7 @@ export default function PostEditor({
 
   return (
     <>
-    <form action={submitPost}>
+    <form action={saveDraft}>
       {post.id && <input type="hidden" name="id" value={post.id} />}
       <input type="hidden" name="content" value={content} />
       <input type="hidden" name="tagIds" value={JSON.stringify(tagIds)} />
@@ -386,8 +388,7 @@ export default function PostEditor({
           <span className="sp" style={{ marginLeft: "auto" }} />
           <button
             type="submit"
-            name="intent"
-            value="draft"
+            formAction={saveDraft}
             className="btn sm"
             disabled={saving}
           >
@@ -395,8 +396,7 @@ export default function PostEditor({
           </button>
           <button
             type="submit"
-            name="intent"
-            value="publish"
+            formAction={publish}
             className="btn primary sm"
             disabled={saving}
           >
