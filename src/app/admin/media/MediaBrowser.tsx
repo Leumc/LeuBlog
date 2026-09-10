@@ -14,6 +14,8 @@ export type BrowserFile = {
   filename: string;
   relativePath: string;
   url: string;
+  downloadUrl: string;
+  isImage: boolean;
   size: number;
   mtime: number;
   references: ReferencePost[];
@@ -32,6 +34,19 @@ type Dialog =
 function fmtSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function extensionLabel(file: BrowserFile): string {
+  const match = file.displayName.match(/\.([A-Za-z0-9]{1,8})$/) || file.filename.match(/\.([A-Za-z0-9]{1,8})$/);
+  return match?.[1].toUpperCase() || "FILE";
+}
+
+function markdownDownloadLink(file: BrowserFile): string {
+  const label = file.displayName
+    .replaceAll("\\", "\\\\")
+    .replaceAll("[", "\\[")
+    .replaceAll("]", "\\]");
+  return `[下载：${label}](${file.downloadUrl})`;
 }
 
 export default function MediaBrowser({
@@ -95,7 +110,7 @@ export default function MediaBrowser({
         </li>
       ))}
     </ul>
-  ) : <p>目前没有文章引用此图片。</p>;
+  ) : <p>目前没有文章引用此文件。</p>;
 
   return (
     <div className="media-browser" aria-busy={pending}>
@@ -126,7 +141,7 @@ export default function MediaBrowser({
       {error && <p className="media-upload-error" role="alert">{error}</p>}
       {legacyOrganizeCount > 0 && (
         <div className="media-organize-banner">
-          <span>有 {legacyOrganizeCount} 张旧图片尚未整理到对应的实际随机目录。</span>
+          <span>有 {legacyOrganizeCount} 个旧媒体文件尚未整理到对应的实际随机目录。</span>
           <button className="btn sm" type="button" onClick={() => setDialog({ type: "organize" })}>整理旧媒体</button>
         </div>
       )}
@@ -137,7 +152,7 @@ export default function MediaBrowser({
             <div className="media-folder" key={folder.id}>
               <Link href={`/admin/media?folder=${folder.id}`}>
                 <span className="media-folder-icon" aria-hidden="true">▰</span>
-                <span><b>{folder.name}</b><small>{folder.childCount} 个文件夹 · {folder.assetCount} 张图片</small></span>
+                <span><b>{folder.name}</b><small>{folder.childCount} 个文件夹 · {folder.assetCount} 个文件</small></span>
               </Link>
               <button type="button" onClick={() => setDialog({ type: "delete-folder", folder })} aria-label={`删除文件夹 ${folder.name}`}>×</button>
             </div>
@@ -149,7 +164,16 @@ export default function MediaBrowser({
         <div className="media">
           {files.map((file) => (
             <div className="m" key={file.id}>
-              <div className="ph"><PreviewImage src={file.url} alt={file.displayName} /></div>
+              <div className="ph">
+                {file.isImage ? (
+                  <PreviewImage src={file.url} alt={file.displayName} />
+                ) : (
+                  <div className="media-file-placeholder" aria-label={`${file.displayName} 文件`}>
+                    <span>{extensionLabel(file)}</span>
+                    <small>附件</small>
+                  </div>
+                )}
+              </div>
               <div className="mi">
                 <div className="media-card-title" title={file.displayName}>{file.displayName}</div>
                 <div className="sz"><span>{fmtSize(file.size)}</span><span>{file.references.length} 篇引用</span></div>
@@ -166,8 +190,10 @@ export default function MediaBrowser({
                     <button onClick={() => showDialog({ type: "rename", file })}>修改显示名</button>
                     <button onClick={() => showDialog({ type: "move", file })}>移动到文件夹</button>
                     <button onClick={() => showDialog({ type: "references", file })}>查看引用文章</button>
-                    <button onClick={() => { setOpenMenu(null); navigator.clipboard?.writeText(file.url); }}>复制链接</button>
-                    <button className="danger" onClick={() => showDialog({ type: "delete-file", file })}>删除图片</button>
+                    <a href={file.downloadUrl}>下载文件</a>
+                    <button onClick={() => { setOpenMenu(null); navigator.clipboard?.writeText(file.isImage ? file.url : file.downloadUrl); }}>{file.isImage ? "复制图片链接" : "复制下载链接"}</button>
+                    {!file.isImage && <button onClick={() => { setOpenMenu(null); navigator.clipboard?.writeText(markdownDownloadLink(file)); }}>复制 Markdown 下载链接</button>}
+                    <button className="danger" onClick={() => showDialog({ type: "delete-file", file })}>删除文件</button>
                   </div>
                 )}
               </div>
@@ -194,7 +220,7 @@ export default function MediaBrowser({
             <input type="hidden" name="id" value={dialog.file.id} />
             <div className="modal-body">
               <label>目标文件夹<select name="categoryId" defaultValue={currentFolderId ?? ""}><option value="">媒体库根目录</option>{allFolders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}</select></label>
-              <p className="media-warning">移动会改变图片实际 URL。确认后程序会自动更新下列站内文章；站外保存的旧链接仍会失效。</p>
+              <p className="media-warning">移动会改变媒体实际路径。程序会自动更新站内图片直链；文章中的稳定下载链接不受影响。</p>
               {refs(dialog.file)}
             </div>
             <div className="modal-actions"><button type="button" className="btn sm" onClick={() => setDialog(null)}>取消</button><button className="btn primary sm" disabled={pending}>确认移动并更新文章</button></div>
@@ -208,8 +234,8 @@ export default function MediaBrowser({
 
       <ConfirmDialog
         open={dialog?.type === "delete-file"}
-        title="确认删除图片"
-        description={dialog?.type === "delete-file" ? <><p>将永久删除“{dialog.file.displayName}”及其实际文件，此操作不可撤销。</p>{dialog.file.references.length > 0 && <><p className="media-warning">以下文章会出现失效图片链接：</p>{refs(dialog.file)}</>}</> : null}
+        title="确认删除文件"
+        description={dialog?.type === "delete-file" ? <><p>将永久删除“{dialog.file.displayName}”及其实际文件，此操作不可撤销。</p>{dialog.file.references.length > 0 && <><p className="media-warning">以下文章中的媒体链接会失效：</p>{refs(dialog.file)}</>}</> : null}
         confirmText="永久删除"
         onCancel={() => setDialog(null)}
         onConfirm={() => { if (dialog?.type === "delete-file") { const data = new FormData(); data.set("id", dialog.file.id); run(deleteMedia, data); } }}
@@ -217,7 +243,7 @@ export default function MediaBrowser({
       <ConfirmDialog
         open={dialog?.type === "organize"}
         title="确认整理旧媒体目录"
-        description={<>将把 {legacyOrganizeCount} 张图片移动到对应的随机物理目录，并自动更新站内文章链接。站外保存的旧 URL 仍会失效。</>}
+        description={<>将把 {legacyOrganizeCount} 个旧媒体文件移动到对应的随机物理目录，并自动更新站内文章链接。站外保存的旧 URL 仍会失效。</>}
         confirmText="确认整理并更新文章"
         onCancel={() => setDialog(null)}
         onConfirm={() => { if (dialog?.type === "organize") run(async () => organizeLegacyMedia(), new FormData()); }}
@@ -225,7 +251,7 @@ export default function MediaBrowser({
       <ConfirmDialog
         open={dialog?.type === "delete-folder"}
         title="确认递归删除文件夹"
-        description={dialog?.type === "delete-folder" ? <>文件夹“{dialog.folder.name}”及全部子文件夹会被删除，其中图片将移动到媒体库根目录，相关文章链接会自动更新。</> : null}
+        description={dialog?.type === "delete-folder" ? <>文件夹“{dialog.folder.name}”及全部子文件夹会被删除，其中媒体文件将移动到媒体库根目录，相关文章链接会自动更新。</> : null}
         confirmText="确认删除文件夹"
         onCancel={() => setDialog(null)}
         onConfirm={() => { if (dialog?.type === "delete-folder") { const data = new FormData(); data.set("id", dialog.folder.id); run(deleteMediaCategory, data); } }}

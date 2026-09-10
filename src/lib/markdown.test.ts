@@ -204,7 +204,8 @@ describe("外链新标签页", () => {
   });
 
   it("相对链接和锚点绝不被加 target", async () => {
-    const html = await renderMarkdown("[去](/about) [顶](#top)");
+    const html = await renderMarkdown("[去](/about) [下载](/downloads/asset_123) [顶](#top)");
     expect(html).not.toContain("target=");
+    expect(html).toContain('<a href="/downloads/asset_123">下载</a>');
   });
 });

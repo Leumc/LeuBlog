@@ -35,35 +35,37 @@ export default async function HomePage() {
       <main>
         <div className="section-label">最近发布</div>
 
-        {posts.map((p) => {
-          const catLabel = p.category
-            ? p.category.name + (p.tags[0] ? ` · ${p.tags[0].name}` : "")
-            : p.tags[0]?.name ?? "未分组";
-          return (
-            <article className="entry" key={p.id}>
-              <span className="cat">{catLabel}</span>
-              <h2>
-                <Link href={`/posts/${p.slug}`}>
-                  {p.locked && <span title="需要密钥">⊘ </span>}
-                  {p.title}
-                </Link>
-              </h2>
-              <div className="meta">
-                {p.publishedAt && <>{formatDate(p.publishedAt)} · </>}
-                <b>{formatAuthorName(p.author, adminName)}</b> ·{" "}
-                <span className="views">阅读 {formatViews(p.viewCount)}</span>
-              </div>
-              {p.excerpt && <p className="dek">{p.excerpt}</p>}
-              {p.tags.length > 0 && (
-                <div className="tags">
-                  {p.tags.map((t) => (
-                    <span key={t.id}>{t.name}</span>
-                  ))}
+        <div className="home-post-list">
+          {posts.map((p) => {
+            const catLabel = p.category
+              ? p.category.name + (p.tags[0] ? ` · ${p.tags[0].name}` : "")
+              : p.tags[0]?.name ?? "未分组";
+            return (
+              <article className="entry" key={p.id}>
+                <span className="cat">{catLabel}</span>
+                <h2>
+                  <Link href={`/posts/${p.slug}`}>
+                    {p.locked && <span title="需要密钥">⊘ </span>}
+                    {p.title}
+                  </Link>
+                </h2>
+                <div className="meta">
+                  {p.publishedAt && <>{formatDate(p.publishedAt)} · </>}
+                  <b>{formatAuthorName(p.author, adminName)}</b> ·{" "}
+                  <span className="views">阅读 {formatViews(p.viewCount)}</span>
                 </div>
-              )}
-            </article>
-          );
-        })}
+                {p.excerpt && <p className="dek">{p.excerpt}</p>}
+                {p.tags.length > 0 && (
+                  <div className="tags">
+                    {p.tags.map((t) => (
+                      <span key={t.id}>{t.name}</span>
+                    ))}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
 
         {posts.length === 0 && (
           <p style={{ padding: "40px 0", fontStyle: "italic", color: "var(--muted)" }}>

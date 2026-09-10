@@ -40,7 +40,7 @@ export default async function TagDetailPage({
 
   return (
     <>
-      <div className="wrap cat-banner">
+      <div className="wrap reader-page-wide cat-banner">
         <div className="crumb">
           <Link href="/">首页</Link> &nbsp;/&nbsp; <Link href="/tags">标签</Link>{" "}
           &nbsp;/&nbsp; {tag.name}
@@ -56,7 +56,7 @@ export default async function TagDetailPage({
         </div>
       </div>
 
-      <div className="wrap tag-detail-list">
+      <div className="wrap reader-page-wide tag-detail-list">
         {posts.map((p) => (
           <article className="entry" key={p.id}>
             {(p.category || p.tags[0]) && (

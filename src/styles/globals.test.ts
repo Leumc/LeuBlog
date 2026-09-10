@@ -7,6 +7,15 @@ const tagDetailPage = readFileSync(
   join(process.cwd(), "src/app/(public)/tags/[slug]/page.tsx"),
   "utf8",
 );
+const homePage = readFileSync(join(process.cwd(), "src/app/(public)/page.tsx"), "utf8");
+const categoryPage = readFileSync(
+  join(process.cwd(), "src/app/(public)/categories/page.tsx"),
+  "utf8",
+);
+const postPage = readFileSync(
+  join(process.cwd(), "src/app/(reading)/posts/[slug]/page.tsx"),
+  "utf8",
+);
 
 function ruleFor(selector: string) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -27,9 +36,49 @@ describe("article column layout", () => {
   });
 });
 
+describe("ultra-wide home layout", () => {
+  it("keeps the article grid scoped to the home page and the 1600px breakpoint", () => {
+    expect(homePage).toContain('className="home-post-list"');
+    expect(css).toMatch(/@media\s*\(min-width:\s*1600px\)[\s\S]*?\.home-post-list\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+    expect(css).toMatch(/@media\s*\(min-width:\s*1600px\)[\s\S]*?\.layout-home\s*\{[\s\S]*?width:\s*min\(92vw,\s*1420px\)/);
+  });
+
+  it("clamps excerpts to three lines only in the ultra-wide home grid", () => {
+    expect(css).toMatch(/@media\s*\(min-width:\s*1600px\)[\s\S]*?\.home-post-list \.entry p\.dek\s*\{[\s\S]*?-webkit-line-clamp:\s*3/);
+  });
+
+  it("aligns tags at the bottom of articles in the same grid row", () => {
+    expect(css).toMatch(/\.home-post-list article\.entry\s*\{[\s\S]*?display:\s*flex[\s\S]*?flex-direction:\s*column/);
+    expect(css).toMatch(/\.home-post-list \.entry \.tags\s*\{[\s\S]*?margin-top:\s*auto/);
+  });
+
+  it("keeps the red category label fitted to its text", () => {
+    expect(css).toMatch(/\.home-post-list \.entry > \.cat\s*\{[^}]*align-self:\s*flex-start/);
+  });
+
+  it("keeps the ultra-wide sidebar visible while the article list scrolls", () => {
+    expect(css).toMatch(/@media\s*\(min-width:\s*1600px\)[\s\S]*?\.layout-home > aside\s*\{[^}]*position:\s*sticky[^}]*top:\s*18px/);
+    expect(css).toMatch(/\.layout-home > aside\s*\{[^}]*max-height:\s*calc\(100vh - 36px\)[^}]*overflow-y:\s*auto/);
+  });
+});
+
+describe("ultra-wide reader pages", () => {
+  it("widens non-home reader pages without changing their default breakpoint", () => {
+    expect(categoryPage).toContain("reader-page-wide");
+    expect(postPage).toContain("reader-page-wide");
+    expect(css).toMatch(/@media\s*\(min-width:\s*1600px\)[\s\S]*?\.reader-page-wide\s*\{[^}]*width:\s*min\(92vw,\s*1320px\)[^}]*max-width:\s*none/);
+  });
+
+  it("keeps the article and archive widths unchanged below 1600px", () => {
+    expect(ruleFor(".layout-post")).toMatch(/max-width:\s*1100px/);
+    expect(ruleFor(".archive-page")).toMatch(/max-width:\s*1120px/);
+    expect(postPage).not.toContain("style={{ maxWidth: 1100 }}");
+  });
+});
+
 describe("tag detail mobile spacing", () => {
   it("uses a page class for vertical spacing so wrap keeps its horizontal padding", () => {
-    expect(tagDetailPage).toContain('className="wrap tag-detail-list"');
+    expect(tagDetailPage).toContain('className="wrap reader-page-wide tag-detail-list"');
     expect(tagDetailPage).not.toContain('padding: "30px 0 50px"');
     expect(ruleFor(".tag-detail-list")).toMatch(/padding-block:\s*30px\s+50px/);
     expect(ruleFor(".tag-detail-list")).not.toMatch(/padding:/);

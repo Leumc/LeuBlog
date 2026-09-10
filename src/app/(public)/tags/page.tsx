@@ -30,7 +30,7 @@ export default async function TagsPage() {
   });
 
   return (
-    <div className="wrap">
+    <div className="wrap reader-page-wide">
       <div className="pagehead">
         <div className="crumb">
           <Link href="/">首页</Link> &nbsp;/&nbsp; 标签

@@ -27,7 +27,7 @@ export default async function AboutPage() {
 
   return (
     <>
-      <div className="wrap layout-about">
+      <div className="wrap reader-page-wide layout-about">
         <main>
           <div className="about-prose" dangerouslySetInnerHTML={{ __html: html }} />
 

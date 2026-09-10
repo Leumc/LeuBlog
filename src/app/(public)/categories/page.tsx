@@ -28,7 +28,7 @@ export default async function CategoriesPage() {
   const totalPosts = categories.reduce((a, c) => a + c._count.posts, 0);
 
   return (
-    <div className="wrap">
+    <div className="wrap reader-page-wide">
       <div className="pagehead">
         <div className="crumb">
           <Link href="/">首页</Link> &nbsp;/&nbsp; 分组

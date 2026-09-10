@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { getSessionUser } from "@/lib/auth";
-import { allowedExt, randomStorageName, resolveUploadDirectory, uploadUrl } from "@/lib/uploads";
+import {
+  allowedExt,
+  downloadUrl,
+  isImageFile,
+  maxUploadBytes,
+  randomStorageFilename,
+  resolveUploadDirectory,
+  uploadUrl,
+} from "@/lib/uploads";
 import { prisma } from "@/lib/prisma";
 import { ensureMediaSchema } from "@/lib/media-schema";
 import { ensureCategoryDirectory, joinMediaPath } from "@/lib/media-storage";
@@ -19,8 +27,12 @@ export async function POST(req: Request) {
   if (!allowedExt(file.name)) {
     return NextResponse.json({ ok: false, error: "不支持的文件类型" }, { status: 400 });
   }
-  if (file.size > 8 * 1024 * 1024) {
-    return NextResponse.json({ ok: false, error: "文件过大（上限 8MB）" }, { status: 400 });
+  const sizeLimit = maxUploadBytes(file.name);
+  if (file.size > sizeLimit) {
+    return NextResponse.json(
+      { ok: false, error: `文件过大（上限 ${sizeLimit / 1024 / 1024}MB）` },
+      { status: 400 },
+    );
   }
 
   await ensureMediaSchema();
@@ -33,8 +45,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "目标文件夹不存在" }, { status: 400 });
   }
 
-  const ext = path.extname(file.name).toLowerCase();
-  const name = `${randomStorageName(16)}${ext}`;
+  const name = randomStorageFilename(file.name);
   const relativeDir = await ensureCategoryDirectory(categoryId ?? null);
   const targetDir = resolveUploadDirectory(relativeDir);
   if (!targetDir) return NextResponse.json({ ok: false, error: "目标路径无效" }, { status: 400 });
@@ -58,7 +69,9 @@ export async function POST(req: Request) {
       ok: true,
       id: asset.id,
       displayName: asset.displayName,
+      isImage: isImageFile(relativePath),
       url: uploadUrl(relativePath),
+      downloadUrl: downloadUrl(asset.id),
     });
   } catch {
     await unlink(fullPath).catch(() => undefined);

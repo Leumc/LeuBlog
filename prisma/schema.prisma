@@ -198,7 +198,7 @@ model MediaCategory {
   @@index([parentId])
 }
 
-// 图片的可变展示信息；filename 是随机实际文件名，相对路径由 MediaStorageAsset 保存。
+// 媒体文件的可变展示信息；filename 是随机实际文件名，相对路径由 MediaStorageAsset 保存。
 model MediaAsset {
   id          String   @id @default(cuid())
   filename    String   @unique
@@ -221,14 +221,14 @@ model MediaStorageFolder {
   category MediaCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 }
 
-// 图片当前实际相对路径；旧图片没有记录时回退到 MediaAsset.filename（上传根目录）。
+// 媒体文件当前实际相对路径；旧记录没有路径时回退到 MediaAsset.filename（上传根目录）。
 model MediaStorageAsset {
   assetId      String @id
   relativePath String @unique
   asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 }
 
-// 可查询的文章图片引用索引；正文仍是最终内容来源。
+// 可查询的文章媒体引用索引；正文仍是最终内容来源。
 model MediaReference {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())

@@ -92,7 +92,7 @@ export default async function CategoryDetailPage({
 
   return (
     <>
-      <div className="wrap cat-banner">
+      <div className="wrap reader-page-wide cat-banner">
         <div className="crumb">
           <Link href="/">首页</Link> &nbsp;/&nbsp; <Link href="/categories">分组</Link>{" "}
           &nbsp;/&nbsp; {category.name}
@@ -119,7 +119,7 @@ export default async function CategoryDetailPage({
         </div>
       </div>
 
-      <div className="wrap layout-cat">
+      <div className="wrap reader-page-wide layout-cat">
         <main>
           {posts.map((p) => (
             <article className="entry" key={p.id}>
