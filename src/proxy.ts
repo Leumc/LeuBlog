@@ -12,7 +12,7 @@ const ADMIN_ONLY = [
   "/admin/access-keys",
 ];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 登录页放行

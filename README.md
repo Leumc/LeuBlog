@@ -20,7 +20,7 @@
 
 ## 技术栈
 
-Next.js 15 (App Router, TS) · SQLite + Prisma · 自建 JWT 会话(jose + bcrypt) ·
+Next.js 16 (App Router, TS) · SQLite + Prisma · 自建 JWT 会话(jose + bcrypt) ·
 Tailwind CSS · unified(remark/rehype) 渲染管线 · Docker Compose + Nginx。
 
 ## 本地开发
@@ -98,5 +98,5 @@ design-previews/    设计定稿存档（不参与构建，仅供参考）
 ## 权限模型
 
 - `ADMIN`（唯一）：全部后台板块（概览 / 内容 / 运营 / 系统）。
-- `EDITOR`：仅「概览」「内容」；运营与系统板块在导航中不渲染，并由 `middleware.ts` 拦截路由。
+- `EDITOR`：仅「概览」「内容」；运营与系统板块在导航中不渲染，并由 `proxy.ts` 拦截路由。
 - 读者：无需账号。
