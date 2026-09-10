@@ -35,6 +35,10 @@ type MarkdownEditorView = {
   focus: () => void;
 };
 
+function escapeMarkdownLinkText(value: string): string {
+  return value.replaceAll("\\", "\\\\").replaceAll("[", "\\[").replaceAll("]", "\\]");
+}
+
 export type EditorPost = {
   id?: string;
   title: string;
@@ -287,15 +291,24 @@ export default function PostEditor({
   }, []);
 
   const onUpload = useCallback(
-    async (file: File) => {
+    async (file: File, mode: "image" | "download") => {
       setUploading(true);
       try {
         const fd = new FormData();
         fd.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: fd });
         const data = await res.json();
-        if (data.ok) insert(`\n![${file.name}](${data.url})\n`);
-        else alert(data.error || "上传失败");
+        if (!res.ok || !data.ok) {
+          alert(data.error || "上传失败");
+        } else if (mode === "image") {
+          if (data.isImage) insert(`\n![${escapeMarkdownLinkText(data.displayName || file.name)}](${data.url})\n`);
+          else alert("请选择受支持的图片文件");
+        } else {
+          const displayName = escapeMarkdownLinkText(data.displayName || file.name);
+          insert(`\n[下载：${displayName}](${data.downloadUrl})\n`);
+        }
+      } catch {
+        alert("上传失败，请检查网络后重试");
       } finally {
         setUploading(false);
       }
@@ -483,7 +496,7 @@ export default function PostEditor({
           </button>
           <span className="gap" />
           <label
-            title="上传图片"
+            title="上传并插入图片"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -500,10 +513,37 @@ export default function PostEditor({
             <input
               type="file"
               accept="image/*"
+              disabled={uploading}
               style={{ display: "none" }}
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) onUpload(f);
+                if (f) onUpload(f, "image");
+                e.target.value = "";
+              }}
+            />
+          </label>
+          <label
+            title="上传并插入下载链接"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 32,
+              height: 30,
+              border: "1px solid var(--aline)",
+              borderRadius: 5,
+              cursor: uploading ? "wait" : "pointer",
+              color: uploading ? "var(--aaccent)" : "var(--soft)",
+            }}
+          >
+            {uploading ? "…" : "⇩"}
+            <input
+              type="file"
+              disabled={uploading}
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onUpload(f, "download");
                 e.target.value = "";
               }}
             />

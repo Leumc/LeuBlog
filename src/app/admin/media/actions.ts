@@ -17,7 +17,7 @@ async function moveAsset(assetId: string, categoryId: string | null): Promise<vo
     where: { id: assetId },
     include: { storage: true },
   });
-  if (!asset) throw new Error("图片不存在");
+  if (!asset) throw new Error("媒体文件不存在");
   if (categoryId) {
     const category = await prisma.mediaCategory.findUnique({ where: { id: categoryId }, select: { id: true } });
     if (!category) throw new Error("目标文件夹不存在");
@@ -33,7 +33,7 @@ async function moveAsset(assetId: string, categoryId: string | null): Promise<vo
 
   const oldPath = resolveUploadPath(oldRelativePath);
   const newPath = resolveUploadPath(newRelativePath);
-  if (!oldPath || !newPath) throw new Error("图片路径无效");
+  if (!oldPath || !newPath) throw new Error("媒体路径无效");
   if (!resolveUploadDirectory(targetDir)) throw new Error("目标文件夹路径无效");
 
   const oldUrl = uploadUrl(oldRelativePath);
@@ -102,7 +102,7 @@ export async function deleteMedia(formData: FormData): Promise<void> {
   const asset = await prisma.mediaAsset.findUnique({ where: { id }, include: { storage: true } });
   if (!asset) return;
   const full = resolveUploadPath(assetRelativePath(asset));
-  if (!full) throw new Error("图片路径无效");
+  if (!full) throw new Error("媒体路径无效");
   const quarantine = `${full}.deleting-${randomStorageName(4)}`;
   let quarantined = false;
   try {

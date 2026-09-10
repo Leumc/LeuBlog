@@ -34,5 +34,5 @@ services:
     volumes:
       - ./certs:/etc/nginx/certs:ro
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # 让 nginx 直出上传图片（与 app 共享同一卷）
+      # 让 nginx 读取上传媒体（图片直出；附件下载由 app 设置显示名）
       - ./uploads:/var/www/uploads:ro

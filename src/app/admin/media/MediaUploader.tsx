@@ -52,13 +52,12 @@ export default function MediaUploader({ categoryId }: { categoryId?: string }) {
       }}
       onClick={() => inputRef.current?.click()}
     >
-      {busy ? "上传中…" : "把图片拖到这里上传，或 "}
+      {busy ? "上传中…" : "把图片或文件拖到这里上传，或 "}
       {!busy && <span className="lk">点击选择文件</span>}
-      （支持 JPG / PNG / WebP / GIF / SVG，单张 ≤ 8 MB）
+      （图片 ≤ 8 MB，文档、压缩包、音视频与代码文件 ≤ 64 MB）
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
         multiple
         style={{ display: "none" }}
         onChange={(e) => upload(e.target.files)}

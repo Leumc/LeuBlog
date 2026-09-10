@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/permissions";
 import { ensureMediaSchema } from "@/lib/media-schema";
 import { backfillMediaReferences } from "@/lib/media-references";
 import { assetRelativePath, ensureCategoryDirectory } from "@/lib/media-storage";
-import { uploadUrl, walkUploadFiles } from "@/lib/uploads";
+import { downloadUrl, isImageFile, uploadUrl, walkUploadFiles } from "@/lib/uploads";
 import MediaUploader from "./MediaUploader";
 import MediaBrowser, { type BrowserFile, type BrowserFolder } from "./MediaBrowser";
 
@@ -29,7 +29,7 @@ export default async function MediaPage({
     ? requestedFolderId
     : null;
 
-  // 为旧分类补齐随机物理目录，但不会静默移动已有图片。
+  // 为旧分类补齐随机物理目录，但不会静默移动已有媒体文件。
   const directoryByCategory = new Map<string, string>();
   for (const category of categories) {
     directoryByCategory.set(category.id, await ensureCategoryDirectory(category.id));
@@ -45,7 +45,7 @@ export default async function MediaPage({
     assets.filter((asset) => !asset.storage).map((asset) => [asset.filename, asset]),
   );
 
-  // 兼容直接放入 uploads 的旧图片与运维导入图片。
+  // 兼容直接放入 uploads 的旧媒体文件与运维导入文件。
   for (const diskFile of diskFiles) {
     if (assetByPath.has(diskFile.relativePath)) continue;
     const legacy = legacyByFilename.get(diskFile.filename);
@@ -101,6 +101,8 @@ export default async function MediaPage({
         filename: asset.filename,
         relativePath,
         url: uploadUrl(relativePath),
+        downloadUrl: downloadUrl(asset.id),
+        isImage: isImageFile(relativePath),
         size: disk.size,
         mtime: disk.mtime,
         references: asset.references.map((reference) => reference.post),

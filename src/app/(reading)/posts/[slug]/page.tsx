@@ -83,7 +83,7 @@ export default async function PostPage({
     : post.tags[0]?.name ?? "";
 
   return (
-    <div className="wrap layout-post" style={{ maxWidth: 1100 }}>
+    <div className="wrap reader-page-wide layout-post">
       <ViewTracker slug={post.slug} />
       <article>
         {keyNote && <div className="key-note">{keyNote}</div>}

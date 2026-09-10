@@ -51,7 +51,7 @@ export default async function ArchivePage() {
   const years = [...yearSet].sort((a, b) => b - a);
 
   return (
-    <div className="wrap" style={{ maxWidth: 1120 }}>
+    <div className="wrap reader-page-wide archive-page">
       <div className="pagehead">
         <div className="crumb">
           <a href="/">首页</a> &nbsp;/&nbsp; 归档

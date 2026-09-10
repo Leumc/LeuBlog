@@ -1,7 +1,7 @@
 import { readFile, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { UPLOAD_DIR, contentTypeFor, resolveUploadPath } from "@/lib/uploads";
+import { UPLOAD_DIR, contentTypeFor, isImageFile, resolveUploadPath } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,8 @@ async function mediaResponse(
   } catch {
     return new NextResponse(null, { status: 404 });
   }
+  // 普通附件只允许通过 /downloads/:id 获取，确保下载名来自媒体显示名。
+  if (!isImageFile(relativePath)) return new NextResponse(null, { status: 404 });
   const candidate = resolveUploadPath(relativePath);
   if (!candidate) return new NextResponse(null, { status: 404 });
 
